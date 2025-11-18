@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
+    <title>Player</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="spotify-surface">
+<main class="center-wrap">
+    <section class="card">
+        <div class="badge">
+            <span class="dot"></span>
+            Top Tracks
+        </div>
+
+        <h1 class="title">Your Top 5 Tracks</h1>
+        <p class="subtitle">Long term listening history.</p>
+
+        <ol id="topTracks" style="text-align:left; padding-left:1.2rem; margin:0 0 16px; list-style:decimal;"></ol>
+
+        <pre id="rawOutput" class="code-panel" aria-live="polite"></pre>
+
+        <div class="actions">
+            <a class="btn btn-ghost" href="logged-in.html">Back</a>
+        </div>
+    </section>
+</main>
+<footer class="foot">
+    <small>Data from Spotify Web API.</small>
+</footer>
+<script type="module" src="player.js"></script>
+</body>
+</html>
