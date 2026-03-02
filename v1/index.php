@@ -8,7 +8,16 @@
 </head>
 <body>
     <header class="header">
-        <img height="50px" src="logo.png" alt="logo">
+        <img height="60vh" src="logo.png" alt="logo">
+        <h2>SteamWho</h2>
+        <p><a href="?">Log In</a></p>
     </header>
+    <main>
+        <section id="overview">
+            <div id="video">
+                <img src="placeholderVid.png" alt="placeholder">
+            </div>
+        </section>
+    </main>
 </body>
 </html>

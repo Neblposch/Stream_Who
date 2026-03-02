@@ -1,0 +1,42 @@
+@font-face {
+    font-family: mainFont;
+    src: url(CircularSpotifyText-Medium.otf);
+}
+:root {
+  --background-color: #240008;     
+  --text-color: #F5BFCC;            
+  --primary-color: #9C344C;         
+  --secondary-color: #600B1F;       
+  --highlight-color: #D8788F;       
+  --border-color: #600B1F;
+
+}
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    background-color: var(--background-color);
+}
+
+header{
+    background-color: var(--secondary-color);
+    padding: 1.5%;
+    display: grid;
+    grid-template-columns: 1fr 7fr 1fr;
+    font-family: mainFont;
+    color: var(--text-color);
+}
+header h2{
+    margin-top: 2.5vh;
+}
+header p, a{
+    margin-top: 3vh;
+    text-decoration: none;
+    color: var(--text-color);
+}
+header img{
+    margin-left: 3vw;
+}
