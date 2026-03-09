@@ -35,7 +35,7 @@
                     per conubia nostra inceptos himenaeos.</p>
             </div>
             <div id="log-in-start">
-                <button><a href="?">Log In and start playing!</a></button>
+                <button><a href="?">Log In!</a></button>
             </div>
         </section>
     </main>
