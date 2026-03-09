@@ -8,7 +8,7 @@
 </head>
 <body>
     <header class="header">
-        <img height="60vh" src="logo.png" alt="logo">
+        <img height="60vh" src="img/logo.png" alt="logo">
         <h2>StreamWho</h2>
         <p><a href="?">Log In</a></p>
     </header>
@@ -16,7 +16,7 @@
     <main>
         <section id="info">
             <div id="vid" class="small-info-box">
-                <img src="placeholderVid.png" alt="placeholder">
+                <img src="img/placeholderVid.png" alt="placeholder">
             </div>
             <div id="text" class="small-info-box">
                 <p>Lorem ipsum dolor sit amet consectetur adipiscing elit. 
