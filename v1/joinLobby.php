@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="lobby">
 
 <!-- Burger Menu -->
 <div class="menu">
