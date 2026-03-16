@@ -6,7 +6,6 @@
   --secondary-color: #600B1F;       
   --highlight-color: #D8788F;       
   --border-color: #600B1F;
-
 }
 
 /*font*/
@@ -90,13 +89,13 @@ footer{
   justify-content:center; 
   align-items:center;    
   overflow:hidden;       
+  background-color: var(--background-color);
 }
 .container{
     display:flex;
     flex-direction:column;
     align-items:center;
     gap:2vh;
-    
 }
 
 /*.logo{
@@ -157,10 +156,8 @@ input{
     padding:1vh 1vw;
     font-size:2vh;
     width:18vw;
-
     background-color: var(--secondary-color);
     color: var(--text-color);
-
     border:0.2vw solid var(--border-color);
     border-radius:0.6vw;
     transition: 0.3s;
@@ -171,24 +168,19 @@ input::placeholder{
 }
 input:focus{
     outline: none; 
-
     border: 0.2vw solid var(--highlight-color);
     background-color: var(--secondary-color);
-
     box-shadow: 0 0 1vh var(--highlight-color);
 }
 
 button{
     padding:1vh 2vw;
     font-size:2vh;
-
     background-color: var(--primary-color);
     color: var(--text-color);
-
     border:none;
     border-radius:0.6vw;
     cursor:pointer;
-
     transition:0.2s;
 }
 
@@ -205,16 +197,14 @@ button:hover{
 .burger{
     font-size:3vh;
     cursor:pointer;
-    color:var(--highlight-color) ;
+    color: var(--text-color);
 }
 
 .menu-content{
     display:none;
     flex-direction:column;
-
     margin-top:1vh;
     background-color: var(--secondary-color);
-
     border:0.15vw solid var(--border-color);
     border-radius:0.4vw;
 }
@@ -223,6 +213,7 @@ button:hover{
     padding:1vh 1.5vw;
     text-decoration:none;
     color:var(--text-color);
+    font-family: mainFont;
 }
 
 .menu-content a:hover{
@@ -260,7 +251,6 @@ button:hover{
     display:flex;
     align-items:center;
     gap:1vw;
-
     padding:1vh 1vw;
     background:var(--secondary-color);
     border:0.2vw solid var(--border-color);
