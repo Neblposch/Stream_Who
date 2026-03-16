@@ -83,7 +83,7 @@ footer{
     justify-self: center
 }
 
-/*===LOBBY===*/
+/*===JOIN LOBBY===*/
 .lobby{
   height:100vh;
   display:flex;
@@ -146,6 +146,13 @@ h1{
     color: var(--text-color);
 }
 
+h2{
+  font-size:4vh;
+    font-weight: bold;
+    font-family: mainFont;
+    color: var(--text-color);
+}
+
 input{
     padding:1vh 1vw;
     font-size:2vh;
@@ -198,6 +205,7 @@ button:hover{
 .burger{
     font-size:3vh;
     cursor:pointer;
+    color:var(--highlight-color) ;
 }
 
 .menu-content{
@@ -223,4 +231,49 @@ button:hover{
 
 .menu:hover .menu-content{
     display:flex;
+}
+
+/*===LOBBY===*/
+
+.lobbyHeading{
+  font-size: 9vh;
+}
+
+.lobby-code{
+    font-size:3vh;
+    padding:1vh 2vw;
+    border:0.2vw solid var(--border-color);
+    border-radius:1vw;
+    background:var(--secondary-color);
+}
+
+.player-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:2vh;
+    background-color: var(--primary-color);
+    padding: 2vw;
+    margin: 0.5vw;
+}
+
+.player{
+    display:flex;
+    align-items:center;
+    gap:1vw;
+
+    padding:1vh 1vw;
+    background:var(--secondary-color);
+    border:0.2vw solid var(--border-color);
+    border-radius:1vw;
+}
+
+.avatar{
+    width:3vw;
+    height:3vw;
+    border-radius:50%;
+    background:var(--highlight-color);
+}
+
+.username{
+    font-size:2vh;
 }
