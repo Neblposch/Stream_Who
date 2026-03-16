@@ -51,7 +51,9 @@
 </div>
 
 <!-- only if admin -->
-<button>Start Game</button>
+<form action="game.php" method="post">
+    <button type="submit">Start Game</button>
+</form>
 
 </div>
 
