@@ -23,7 +23,7 @@
 <!-- Main Content -->
 <div class="container">
 
-    <img src="logoLight.png" class="logo" alt="Logo">
+    <img src="img/logoLight.png" class="logo" alt="Logo">
 
     <h1>Join Lobby</h1>
 
