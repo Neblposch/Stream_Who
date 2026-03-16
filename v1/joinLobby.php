@@ -12,7 +12,7 @@
 <div class="menu">
     <div class="burger">&#9776;</div>
     <div class="menu-content">
-        <a href="#">Leave</a>
+        <a href="index.php">Leave</a>
         <a href="#">Impressum</a>
         <a href="#">More</a>
     </div>
