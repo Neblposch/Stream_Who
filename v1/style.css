@@ -27,7 +27,7 @@ body{
 
 header{
     background-color: var(--secondary-color);
-    padding: 1.5%;
+    padding: 1.5vh 1.5vw;
     display: grid;
     grid-template-columns: 1fr 7fr 1fr;
     font-family: mainFont;
@@ -49,7 +49,7 @@ footer{
     color: var(--text-color);
     font-family: mainFont;
     margin-top: 14vh;
-    padding: 2%;
+    padding: 2vh 2vw;
     text-align: center;
 }
 
@@ -60,12 +60,12 @@ footer{
     margin-left: 5vw;
     margin-right: 5vw;
     width: 90vw;
-    gap: 5%;
+    gap: 5vw;
 }
 .small-info-box{
     background-color: var(--primary-color);
     color: var(--text-color);
-    padding: 4%;
+    padding: 4vh 4vw;
     text-align: center;
 }
 
@@ -74,8 +74,8 @@ footer{
     height: 8vh;
     width: 10vw;
     font-family: mainFont;
-    border: solid 2px var(--border-color);
-    border-radius: 10px;
+    border: solid 0.2vw var(--border-color);
+    border-radius: 0.6vw;
 }
 #log-in-start {
     grid-column: 1/-1;
@@ -105,8 +105,8 @@ footer{
 }*/
 .logo-wrapper {
     position: relative;
-    width: 150px;
-    height: 150px;
+    width: 15vw;
+    height: 15vw;
     margin: auto;
 }
 
