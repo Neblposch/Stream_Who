@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
 </head>
-<body>
-    
+<body id="gameBody">
+    <div id=""></div>
 </body>
 </html>

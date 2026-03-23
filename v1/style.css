@@ -1,13 +1,10 @@
 /*Variables Color*/
 :root {
-  --background-color: #240008;     
-  --text-color: #F5BFCC;            
-  --primary-color: #9C344C;         
-  --secondary-color: #600B1F;       
-  --highlight-color: #D8788F;       
-  --border-color: #600B1F;
+  --accent-color: #A46F6D;
+  --text-color: #D3B6B4;
+  --primary-color:  #200D0D;
+  --secondary-color: #56292A;
 }
-
 /*font*/
 @font-face {
     font-family: mainFont;
@@ -22,7 +19,7 @@
 
 /*===INDEX===*/
 body{
-    background-color: var(--background-color);
+    background-color: var(--primary-color);
 }
 
 header{
@@ -63,7 +60,7 @@ footer{
     gap: 5vw;
 }
 .small-info-box{
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
     color: var(--text-color);
     padding: 4vh 4vw;
     text-align: center;
@@ -74,7 +71,7 @@ footer{
     height: 8vh;
     width: 10vw;
     font-family: mainFont;
-    border: solid 0.2vw var(--border-color);
+    
     border-radius: 0.6vw;
 }
 #log-in-start {
@@ -89,7 +86,7 @@ footer{
   justify-content:center; 
   align-items:center;    
   overflow:hidden;       
-  background-color: var(--background-color);
+  background-color: var(--primary-color);
 }
 .container{
     display:flex;
@@ -158,25 +155,25 @@ input{
     width:18vw;
     background-color: var(--secondary-color);
     color: var(--text-color);
-    border:0.2vw solid var(--border-color);
+    border:0.2vw solid var(--accent-color);
     border-radius:0.6vw;
     transition: 0.3s;
 }
 
 input::placeholder{
-    color: var(--highlight-color);
+    color: var(--accent-color);
 }
 input:focus{
     outline: none; 
-    border: 0.2vw solid var(--highlight-color);
+    border: 0.2vw solid var(--accent-color);
     background-color: var(--secondary-color);
-    box-shadow: 0 0 1vh var(--highlight-color);
+    box-shadow: 0 0 1vh var(--accent-color);
 }
 
 button{
     padding:1vh 2vw;
     font-size:2vh;
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
     color: var(--text-color);
     border:none;
     border-radius:0.6vw;
@@ -185,7 +182,7 @@ button{
 }
 
 button:hover{
-    background-color: var(--highlight-color);
+    background-color: var(--accent-color);
 }
 
 .menu{
@@ -233,7 +230,7 @@ button:hover{
 .lobby-code{
     font-size:3vh;
     padding:1vh 2vw;
-    border:0.2vw solid var(--border-color);
+    border:0.2vw solid var(--accent-color);
     border-radius:1vw;
     background:var(--secondary-color);
 }
@@ -253,7 +250,7 @@ button:hover{
     gap:1vw;
     padding:1vh 1vw;
     background:var(--secondary-color);
-    border:0.2vw solid var(--border-color);
+    border:0.2vw solid var(--accent-color);
     border-radius:1vw;
 }
 
@@ -261,9 +258,11 @@ button:hover{
     width:3vw;
     height:3vw;
     border-radius:50%;
-    background:var(--highlight-color);
+    background:var(--accent-color);
 }
 
 .username{
     font-size:2vh;
 }
+
+/*==Game==*/
