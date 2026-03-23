@@ -19,11 +19,11 @@
 
 /*===INDEX===*/
 body{
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
 }
 
 header{
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     padding: 1.5vh 1.5vw;
     display: grid;
     grid-template-columns: 1fr 7fr 1fr;
@@ -42,7 +42,7 @@ header img{
     margin-left: 3vw;
 }
 footer{
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     color: var(--text-color);
     font-family: mainFont;
     margin-top: 14vh;
@@ -60,14 +60,14 @@ footer{
     gap: 5vw;
 }
 .small-info-box{
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     color: var(--text-color);
     padding: 4vh 4vw;
     text-align: center;
 }
 
 #log-in-start button{
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     height: 8vh;
     width: 10vw;
     font-family: mainFont;

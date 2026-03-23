@@ -22,7 +22,7 @@
 <div class="container">
 
     <div class="logo-wrapper">
-        <img src="img/logoLight.png" class="logo" alt="Logo">
+        <img src="img/logo.png" class="logo" alt="Logo">
         <svg class="wave-ring" viewBox="0 0 240 240">  <!-- Increased from 200x200 -->
         <path id="wavePath" fill="none" stroke="var(--highlight-color)" stroke-width="4"/>
     </svg>
