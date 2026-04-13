@@ -58,6 +58,7 @@ footer{
     margin-right: 5vw;
     width: 90vw;
     gap: 5vw;
+    font-size: 4vh;
 }
 .small-info-box{
     background-color: var(--primary-color);
@@ -266,3 +267,128 @@ button:hover{
 }
 
 /*==Game==*/
+
+/* Game Page Styles */
+.background {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease;
+    filter: blur(10px);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #56292a71;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.artist {
+    font-size: 18px;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.button {
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.player-btn {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 25px;
+}
+
+.player-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.player-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.info {
+    margin-bottom: 20px;
+}
+
+.round {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.scores {
+    font-size: 14px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.control {
+    background: #1db954;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: bold;
+}
+
+.control:hover {
+    background: #1aa34a;
+}
+
+.feedback {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
