@@ -1,0 +1,30 @@
+{
+  "players": [
+    {
+      "id": "p1",
+      "name": "Emily",
+      "tracks": [
+        {
+          "id": "track_001",
+          "title": "Blinding Lights",
+          "artist": "The Weeknd",
+          "cover_url": "https://...",
+          "playcount": 50
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "name": "Alex",
+      "tracks": [
+        {
+          "id": "track_001",
+          "title": "Blinding Lights",
+          "artist": "The Weeknd",
+          "cover_url": "https://...",
+          "playcount": 10
+        }
+      ]
+    }
+  ]
+}
