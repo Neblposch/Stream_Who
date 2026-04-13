@@ -24,7 +24,7 @@
     <div class="logo-wrapper">
         <img src="img/logo.png" class="logo" alt="Logo">
         <svg class="wave-ring" viewBox="0 0 240 240">  <!-- Increased from 200x200 -->
-        <path id="wavePath" fill="none" stroke="var(--highlight-color)" stroke-width="4"/>
+        <path id="wavePath" fill="none" stroke="var(--text-color)" stroke-width="4"/>
     </svg>
     </div>
 
@@ -46,80 +46,80 @@
 
 </div>
 
+
 <script>
-(function() {
-    const path = document.getElementById("wavePath");
-    if (!path) return;  
-    const center = 120
-    const baseRadius = 105 
-    const amplitude = 12   
-    const waves = 12
-    const points = 180
+    (function() {
+        const path = document.getElementById("wavePath");
+        if (!path) return;  
+        const center = 120
+        const baseRadius = 105 
+        const amplitude = 12   
+        const waves = 12
+        const points = 180
 
-    let t = 0;
-    let rotation = 0;
-    const rotationSpeed = 0.01;
+        let t = 0;
+        let rotation = 0;
+        const rotationSpeed = 0.01;
 
-    function drawWave() {
-        let d = "";
-        const pulse = Math.sin(t);         
+        function drawWave() {
+            let d = "";
+            const pulse = Math.sin(t);         
 
-        for (let i = 0; i <= points; i++) {
-            const angle = (i / points) * Math.PI * 2;
-            const r = baseRadius + amplitude * pulse * Math.sin(waves * angle);
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const r = baseRadius + amplitude * pulse * Math.sin(waves * angle);
 
-            const x = center + r * Math.cos(angle + rotation);
-            const y = center + r * Math.sin(angle + rotation);
+                const x = center + r * Math.cos(angle + rotation);
+                const y = center + r * Math.sin(angle + rotation);
 
-            if (i === 0) {
-                d += `M ${x} ${y}`;
-            } else {
-                d += ` L ${x} ${y}`;
+                if (i === 0) {
+                    d += `M ${x} ${y}`;
+                } else {
+                    d += ` L ${x} ${y}`;
+                }
             }
+            d += " Z";   
+
+            path.setAttribute("d", d);
+
+            t += 0.05;
+            rotation += rotationSpeed;
+
+            requestAnimationFrame(drawWave);
         }
-        d += " Z";   
 
-        path.setAttribute("d", d);
+        drawWave();
 
-        t += 0.05;
-        rotation += rotationSpeed;
+        const path2 = document.getElementById("wavePath"); 
+        let time = 0;
 
-        requestAnimationFrame(drawWave);
-    }
+        function drawWaveCSSrotated() {
+            let d = "";
+            const pulse = Math.sin(time);   
 
-    drawWave();
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const r = baseRadius + amplitude * pulse * Math.sin(waves * angle);
 
-    const path2 = document.getElementById("wavePath"); 
-    let time = 0;
+                const x = center + r * Math.cos(angle);
+                const y = center + r * Math.sin(angle);
 
-    function drawWaveCSSrotated() {
-        let d = "";
-        const pulse = Math.sin(time);   
+                if (i === 0) d += `M ${x} ${y}`;
+                else d += ` L ${x} ${y}`;
+            }
+            d += " Z";
+            path2.setAttribute("d", d);
 
-        for (let i = 0; i <= points; i++) {
-            const angle = (i / points) * Math.PI * 2;
-            const r = baseRadius + amplitude * pulse * Math.sin(waves * angle);
-
-            const x = center + r * Math.cos(angle);
-            const y = center + r * Math.sin(angle);
-
-            if (i === 0) d += `M ${x} ${y}`;
-            else d += ` L ${x} ${y}`;
+            time += 0.05;  // speed of pulsing
+            requestAnimationFrame(drawWaveCSSrotated);
         }
-        d += " Z";
-        path2.setAttribute("d", d);
 
-        time += 0.05;  // speed of pulsing
-        requestAnimationFrame(drawWaveCSSrotated);
-    }
+        drawWaveCSSrotated();
 
-    drawWaveCSSrotated();
-
-    path2.setAttribute('stroke', 'var(--highlight-color)');
-    path2.setAttribute('stroke-width', '4');
-    path2.setAttribute('fill', 'none');
-})();
+        path2.setAttribute('stroke', 'var(--text-color)');
+        path2.setAttribute('stroke-width', '4');
+        path2.setAttribute('fill', 'none');
+    })();
 </script>
-
 </body>
 </html>

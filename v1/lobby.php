@@ -55,7 +55,25 @@
     <button type="submit">Start Game</button>
 </form>
 
+<audio id="lobbyAudio" loop>
+  <source src="media/lobby.mp3" type="audio/mpeg">
+</audio>
+
 </div>
+
+
+<script>
+    const audio = document.getElementById("lobbyAudio")
+
+    window.addEventListener("load", () => {
+        audio.volume = 0.5 
+        audio.play().catch(() => {
+        document.addEventListener("click", () => {
+            audio.play()
+        }, { once: true })
+        })
+    })
+</script>
 
 </body>
 </html>
