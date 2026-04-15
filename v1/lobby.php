@@ -1,3 +1,46 @@
+<?php
+include  'functions.php';
+
+startSession();
+
+if (empty($_SESSION['username'])) {
+    $_SESSION['username'] = generateTemporaryUsername();
+}
+
+$username = $_SESSION['username'];
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!empty($_POST['username'])) {
+        $username = sanitizeUsername($_POST['username']);
+        $_SESSION['username'] = $username;
+    }
+
+    $action = $_POST['action'] ?? '';
+    if ($action === 'create') {
+        try {
+            $roomCode = createRoom($username);
+            header("Location: game.php?room={$roomCode}");
+            exit;
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+    } elseif ($action === 'join') {
+        $roomCode = normalizeRoomCode($_POST['roomCode'] ?? '');
+        if ($roomCode === '') {
+            $error = 'Enter a valid room code.';
+        } else {
+            try {
+                joinRoom($roomCode, $username);
+                header("Location: game.php?room={$roomCode}");
+                exit;
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +49,6 @@
 <title>Lobby</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="lobby">
 
 <!-- Burger Menu -->
@@ -23,57 +65,42 @@
 <div class="container">
     <h1 class="lobbyHeading">Lobby</h1>
 
-<!-- Lobby Code -->
-<div class="lobby-code">
-    CODE: ABCD12
+    <?php if ($error): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <p>Your username: <strong><?= htmlspecialchars($username) ?></strong></p>
+
+    <form action="lobby.php" method="post" class="lobby-form">
+        <label for="username">Enter a username (optional)</label>
+        <input id="username" type="text" name="username" value="<?= htmlspecialchars($username) ?>" placeholder="Player1234">
+
+        <div class="form-row">
+            <button type="submit" name="action" value="create">Create Room</button>
+        </div>
+    </form>
+
+    <form action="lobby.php" method="post" class="lobby-form">
+        <label for="roomCode">Room Code</label>
+        <input id="roomCode" type="text" name="roomCode" placeholder="Enter room code">
+
+        <div class="form-row">
+            <button type="submit" name="action" value="join">Join Room</button>
+        </div>
+    </form>
 </div>
-
-<h2>Players</h2>
-
-<!-- Player List -->
-<div class="player-grid">
-
-    <div class="player">
-        <div class="avatar"></div>
-        <span class="username">PlayerOne</span>
-    </div>
-
-    <div class="player">
-        <div class="avatar"></div>
-        <span class="username">ShadowCat</span>
-    </div>
-
-    <div class="player">
-        <div class="avatar"></div>
-        <span class="username">PixelGhost</span>
-    </div>
-
-</div>
-
-<!-- only if admin -->
-<form action="game.php" method="post">
-    <button type="submit">Start Game</button>
-</form>
-
-<audio id="lobbyAudio" loop>
-  <source src="media/lobby.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-
 
 <script>
     const audio = document.getElementById("lobbyAudio")
-
     window.addEventListener("load", () => {
-        audio.volume = 0.5 
+        if (!audio) return;
+        audio.volume = 0.5;
         audio.play().catch(() => {
-        document.addEventListener("click", () => {
-            audio.play()
-        }, { once: true })
-        })
-    })
+            document.addEventListener("click", () => {
+                audio.play();
+            }, { once: true });
+        });
+    });
 </script>
-
 </body>
 </html>

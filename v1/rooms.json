@@ -1,0 +1,17 @@
+{
+    "ABC123": {
+        "host": "Player1234",
+        "players": [
+            "Player1234",
+            "Guest6789"
+        ],
+        "created_at": 1710000000
+    },
+    "JQPUF8": {
+        "host": "Player5589",
+        "players": [
+            "Player5589"
+        ],
+        "created_at": 1776278484
+    }
+}
