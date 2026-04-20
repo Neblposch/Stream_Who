@@ -1,3 +1,27 @@
+<?php
+require_once __DIR__ . '/functions.php';
+
+startSession();
+requireLogin();
+
+$currentUsername = $_SESSION['username'];
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
+    $roomCode = normalizeRoomCode($_POST['lobbyCode']);
+    if ($roomCode === '') {
+        $error = 'Please enter a valid lobby code.';
+    } else {
+        try {
+            joinRoom($roomCode, $currentUsername);
+            header("Location: game.php?room={$roomCode}");
+            exit;
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,10 +54,14 @@
 
     <h1>Join Lobby</h1>
 
+    <?php if ($error): ?>
+        <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
+    <?php endif; ?>
+
     <form action="joinLobby.php" method="post" class="lobby-form">
 
         <div class="join-row">
-            <input type="text" name="lobbyCode" placeholder="Enter Lobby Code">
+            <input type="text" name="lobbyCode" placeholder="Enter Lobby Code" required>
 
             <button type="submit">Join</button>
         </div>

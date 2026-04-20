@@ -1,12 +1,32 @@
 <?php
 session_start();
 
+require_once 'functions.php';
+
 $jsonFile = 'data/spotifyAPI.json';
 
 function loadPlayers() {
     global $jsonFile;
     $data = json_decode(file_get_contents($jsonFile), true);
-    return $data['players'];
+    $allPlayers = $data['players'];
+
+    // Get current room players
+    $roomCode = $_SESSION['current_room'] ?? null;
+    if (!$roomCode) {
+        return [];
+    }
+    $roomData = getRoom($roomCode);
+    if (!$roomData) {
+        return [];
+    }
+    $roomPlayerNames = $roomData['players'];
+
+    // Filter players to those in the room
+    $players = array_filter($allPlayers, function($player) use ($roomPlayerNames) {
+        return in_array($player['name'], $roomPlayerNames);
+    });
+
+    return array_values($players); // Reindex array
 }
 
 function getNextPlayer($players) {

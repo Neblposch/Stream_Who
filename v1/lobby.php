@@ -2,20 +2,12 @@
 include  'functions.php';
 
 startSession();
-
-if (empty($_SESSION['username'])) {
-    $_SESSION['username'] = generateTemporaryUsername();
-}
+requireLogin();
 
 $username = $_SESSION['username'];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!empty($_POST['username'])) {
-        $username = sanitizeUsername($_POST['username']);
-        $_SESSION['username'] = $username;
-    }
-
     $action = $_POST['action'] ?? '';
     if ($action === 'create') {
         try {
@@ -72,9 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p>Your username: <strong><?= htmlspecialchars($username) ?></strong></p>
 
     <form action="lobby.php" method="post" class="lobby-form">
-        <label for="username">Enter a username (optional)</label>
-        <input id="username" type="text" name="username" value="<?= htmlspecialchars($username) ?>" placeholder="Player1234">
-
         <div class="form-row">
             <button type="submit" name="action" value="create">Create Room</button>
         </div>

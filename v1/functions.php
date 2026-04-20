@@ -139,4 +139,95 @@ function getRoom(string $roomCode): ?array
     $rooms = loadRooms();
     return $rooms[$roomCode] ?? null;
 }
+
+function usersFilePath(): string
+{
+    return __DIR__ . '/users.json';
+}
+
+function loadUsers(): array
+{
+    $path = usersFilePath();
+
+    if (!file_exists($path)) {
+        file_put_contents($path, json_encode([], JSON_PRETTY_PRINT));
+    }
+
+    $fp = fopen($path, 'r');
+    if (!$fp) {
+        return [];
+    }
+
+    flock($fp, LOCK_SH);
+    $contents = stream_get_contents($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    $users = json_decode($contents, true);
+    return is_array($users) ? $users : [];
+}
+
+function saveUsers(array $users): bool
+{
+    $path = usersFilePath();
+    $fp = fopen($path, 'c+');
+    if (!$fp) {
+        return false;
+    }
+
+    flock($fp, LOCK_EX);
+    ftruncate($fp, 0);
+    rewind($fp);
+    $written = fwrite($fp, json_encode($users, JSON_PRETTY_PRINT));
+    fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    return $written !== false;
+}
+
+function userExists(string $username): bool
+{
+    $username = sanitizeUsername($username);
+    $users = loadUsers();
+    return isset($users[$username]);
+}
+
+function createUser(string $username): void
+{
+    $username = sanitizeUsername($username);
+    $users = loadUsers();
+    if (isset($users[$username])) {
+        throw new InvalidArgumentException('User already exists.');
+    }
+    $users[$username] = [
+        'username' => $username,
+        'created_at' => time(),
+    ];
+    if (!saveUsers($users)) {
+        throw new RuntimeException('Unable to save user.');
+    }
+}
+
+function loginUser(string $username): void
+{
+    $username = sanitizeUsername($username);
+    if (!userExists($username)) {
+        createUser($username);
+    }
+    $_SESSION['username'] = $username;
+}
+
+function isLoggedIn(): bool
+{
+    return isset($_SESSION['username']);
+}
+
+function requireLogin(): void
+{
+    if (!isLoggedIn()) {
+        header('Location: login.php');
+        exit;
+    }
+}
 ?>

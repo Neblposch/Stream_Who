@@ -15,11 +15,12 @@
 *{
     margin: 0;
     padding: 0;
+ 
 }
 
 /*===INDEX===*/
 body{
-    background-color: var(--secondary-color);
+   background-color: white;
 }
 
 header{
@@ -87,7 +88,7 @@ footer{
   justify-content:center; 
   align-items:center;    
   overflow:hidden;       
-  background-color: var(--primary-color);
+ background-color: white;
 }
 .container{
     display:flex;
@@ -279,7 +280,7 @@ button:hover{
     background-position: center;
     background-repeat: no-repeat;
     transition: background-image 0.5s ease;
-    filter: blur(10px);
+
 }
 
 .overlay {

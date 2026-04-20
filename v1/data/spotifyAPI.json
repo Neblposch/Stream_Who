@@ -1,28 +1,110 @@
 {
   "players": [
     {
-      "id": "p1",
-      "name": "Emily",
+      "id": "Alice",
+      "name": "Alice",
       "tracks": [
         {
           "id": "track_001",
           "title": "Blinding Lights",
           "artist": "The Weeknd",
-          "cover_url": "https://...",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36",
           "playcount": 50
+        },
+        {
+          "id": "track_002",
+          "title": "Watermelon Sugar",
+          "artist": "Harry Styles",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273adaa848e5c4e6b1b0e47cd92",
+          "playcount": 30
+        },
+        {
+          "id": "track_003",
+          "title": "Levitating",
+          "artist": "Dua Lipa",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273b98f116b2d27edc9b4b4a7a8",
+          "playcount": 20
         }
       ]
     },
     {
-      "id": "p2",
-      "name": "Alex",
+      "id": "Bob",
+      "name": "Bob",
       "tracks": [
         {
           "id": "track_001",
           "title": "Blinding Lights",
           "artist": "The Weeknd",
-          "cover_url": "https://...",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36",
           "playcount": 10
+        },
+        {
+          "id": "track_004",
+          "title": "Shape of You",
+          "artist": "Ed Sheeran",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96",
+          "playcount": 45
+        },
+        {
+          "id": "track_005",
+          "title": "Bad Guy",
+          "artist": "Billie Eilish",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b27350a3147b4edd7701a876c6ce",
+          "playcount": 25
+        }
+      ]
+    },
+    {
+      "id": "Charlie",
+      "name": "Charlie",
+      "tracks": [
+        {
+          "id": "track_002",
+          "title": "Watermelon Sugar",
+          "artist": "Harry Styles",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273adaa848e5c4e6b1b0e47cd92",
+          "playcount": 40
+        },
+        {
+          "id": "track_004",
+          "title": "Shape of You",
+          "artist": "Ed Sheeran",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96",
+          "playcount": 15
+        },
+        {
+          "id": "track_006",
+          "title": "Uptown Funk",
+          "artist": "Mark Ronson ft. Bruno Mars",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273e419ccba0baa48bd3a728ed5",
+          "playcount": 35
+        }
+      ]
+    },
+    {
+      "id": "Diana",
+      "name": "Diana",
+      "tracks": [
+        {
+          "id": "track_003",
+          "title": "Levitating",
+          "artist": "Dua Lipa",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b273b98f116b2d27edc9b4b4a7a8",
+          "playcount": 5
+        },
+        {
+          "id": "track_005",
+          "title": "Bad Guy",
+          "artist": "Billie Eilish",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b27350a3147b4edd7701a876c6ce",
+          "playcount": 50
+        },
+        {
+          "id": "track_007",
+          "title": "Rolling in the Deep",
+          "artist": "Adele",
+          "cover_url": "https://i.scdn.co/image/ab67616d0000b2734c8c77e7f4c0a1b9b2c2b2b2",
+          "playcount": 30
         }
       ]
     }

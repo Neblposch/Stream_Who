@@ -10,7 +10,7 @@
     <header class="header">
         <img height="60vh" src="img/logo.png" alt="logo">
         <h2>StreamWho</h2>
-        <p><a href="?">Log In</a></p>
+        <p><a href="login.php">Log In</a></p>
     </header>
 
     <main>
@@ -32,13 +32,13 @@
                 It’s simple: observe, think, and read the room through music.</p>
             </div>
             <div id="log-in-start">
-                <button><a href="?">Log In!</a></button>
+                <button><a href="login.php">Log In!</a></button>
             </div>
         </section>
     </main>
 
     <footer>
-        <a href="?">Impressum</a> | <a href="?">Log In</a>
+        <a href="?">Impressum</a> | <a href="login.php">Log In</a>
     </footer>
 </body>
 </html>

@@ -3,10 +3,7 @@
 require_once __DIR__ . '/functions.php';
 
 startSession();
-
-if (empty($_SESSION['username'])) {
-    $_SESSION['username'] = generateTemporaryUsername();
-}
+requireLogin();
 
 $currentUsername = $_SESSION['username'];
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
