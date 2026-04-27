@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/spotify_helper.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +13,13 @@
     <header class="header">
         <img height="60vh" src="img/logo.png" alt="logo">
         <h2>StreamWho</h2>
-        <p><a href="login.php">Log In</a></p>
+        <p>
+            <?php if (!empty($_SESSION['access_token']) || !empty($_SESSION['username'])): ?>
+                <a href="logout.php">Log Out</a>
+            <?php else: ?>
+                <a href="login.php">Log In</a>
+            <?php endif; ?>
+        </p>
     </header>
 
     <main>
@@ -38,7 +47,12 @@
     </main>
 
     <footer>
-        <a href="?">Impressum</a> | <a href="login.php">Log In</a>
+        <a href="?">Impressum</a> | 
+        <?php if (!empty($_SESSION['access_token']) || !empty($_SESSION['username'])): ?>
+            <a href="logout.php">Log Out</a>
+        <?php else: ?>
+            <a href="login.php">Log In</a>
+        <?php endif; ?>
     </footer>
 </body>
 </html>

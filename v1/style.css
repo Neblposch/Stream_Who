@@ -20,7 +20,7 @@
 
 /*===INDEX===*/
 body{
-   background-color: white;
+   background-color: var(--secondary-color);
 }
 
 header{
@@ -88,7 +88,7 @@ footer{
   justify-content:center; 
   align-items:center;    
   overflow:hidden;       
- background-color: white;
+ background-color: var(--primary-color);
 }
 .container{
     display:flex;

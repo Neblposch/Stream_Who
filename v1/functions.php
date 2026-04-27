@@ -220,7 +220,7 @@ function loginUser(string $username): void
 
 function isLoggedIn(): bool
 {
-    return isset($_SESSION['username']);
+    return isset($_SESSION['username']) || isset($_SESSION['access_token']);
 }
 
 function requireLogin(): void
