@@ -1,23 +1,12 @@
 <?php
 session_start();
 
-// Spotify PKCE helper - works for both localhost and production
+// Spotify PKCE helper for production URL (tpos.at)
+// Copy of original helper but with redirect URI set to your live callback.
+
 const SPOTIFY_CLIENT_ID = '76cdb795f3bf44b99361f82a0c16f9d0';
-
-// Determine the redirect URI based on the current environment
-function getSpotifyRedirectUri() {
-    // For production (tpos.at)
-    if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'tpos.at') !== false) {
-        return 'https://tpos.at/streamwho/spotify_callback.php';
-    }
-    
-    // For localhost development
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    $host = $_SERVER['HTTP_HOST'];
-    return $protocol . $host . '/Stream_Who/v1/spotify_callback.php';
-}
-
-const SPOTIFY_REDIRECT_URI = '';  // Will be determined dynamically
+// Use the production redirect you provided
+const SPOTIFY_REDIRECT_URI = 'https://tpos.at/streamwho/loggedIn_prod.php';
 
 function generateCodeVerifier($length = 128) {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
@@ -68,6 +57,7 @@ function fetchSpotify($url, $allowRefresh = true) {
     // Respect 429 Retry-After with exponential backoff
     if ($httpCode == 429) {
         $headers = curl_getinfo($ch);
+        // Try to read Retry-After from response headers via separate request not set up here; fallback
         $retryAfter = 1;
     }
     curl_close($ch);
@@ -86,11 +76,10 @@ function fetchSpotify($url, $allowRefresh = true) {
 }
 
 function exchangeCodeForToken($code, $code_verifier) {
-    $redirectUri = getSpotifyRedirectUri();
     $postData = [
         'grant_type' => 'authorization_code',
         'code' => $code,
-        'redirect_uri' => $redirectUri,
+        'redirect_uri' => SPOTIFY_REDIRECT_URI,
         'client_id' => SPOTIFY_CLIENT_ID,
         'code_verifier' => $code_verifier
     ];
@@ -132,12 +121,9 @@ function refreshAccessToken($refresh_token) {
     return $tokenData;
 }
 
-function spotifyLogout() {
-    unset($_SESSION['access_token']);
-    unset($_SESSION['refresh_token']);
-    unset($_SESSION['expires_at']);
-    unset($_SESSION['spotify_user']);
-    unset($_SESSION['code_verifier']);
+function logout() {
+    session_unset();
+    session_destroy();
 }
 
 ?>

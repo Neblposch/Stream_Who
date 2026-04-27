@@ -4,11 +4,7 @@ require_once __DIR__ . '/spotify_helper.php';
 
 startSession();
 
-// If logged in, redirect to lobby
-if (!empty($_SESSION['access_token'])) {
-    header('Location: lobby.php');
-    exit;
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
