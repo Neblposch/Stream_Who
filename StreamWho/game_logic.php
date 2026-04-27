@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-require_once 'functions.php';
-require_once 'spotify_helper.php';
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/spotify_helper.php';
 
 /**
  * Fetch a player's top tracks from Spotify API
