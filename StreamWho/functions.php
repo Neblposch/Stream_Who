@@ -1,23 +1,10 @@
 <?php
 
-
 function startSession(): void
 {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
-}
-
-function generateTemporaryUsername(): string
-{
-    return 'Player' . random_int(1000, 9999);
-}
-
-function sanitizeUsername(string $username): string
-{
-    $username = trim($username);
-    $username = preg_replace('/[^A-Za-z0-9_-]/', '', $username);
-    return $username === '' ? generateTemporaryUsername() : $username;
 }
 
 function normalizeRoomCode(string $roomCode): string
@@ -26,208 +13,157 @@ function normalizeRoomCode(string $roomCode): string
     return preg_replace('/[^A-Z0-9]/', '', $roomCode);
 }
 
-function roomsFilePath(): string
-{
-    return __DIR__ . '/rooms.json';
-}
-
-function loadRooms(): array
-{
-    $path = roomsFilePath();
-
-    if (!file_exists($path)) {
-        file_put_contents($path, json_encode([], JSON_PRETTY_PRINT));
-    }
-
-    $fp = fopen($path, 'r');
-    if (!$fp) {
-        return [];
-    }
-
-    flock($fp, LOCK_SH);
-    $contents = stream_get_contents($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-
-    $rooms = json_decode($contents, true);
-    return is_array($rooms) ? $rooms : [];
-}
-
-function saveRooms(array $rooms): bool
-{
-    $path = roomsFilePath();
-    $fp = fopen($path, 'c+');
-    if (!$fp) {
-        return false;
-    }
-
-    flock($fp, LOCK_EX);
-    ftruncate($fp, 0);
-    rewind($fp);
-    $written = fwrite($fp, json_encode($rooms, JSON_PRETTY_PRINT));
-    fflush($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-
-    return $written !== false;
-}
-
-function roomExists(string $roomCode): bool
-{
-    $roomCode = normalizeRoomCode($roomCode);
-    $rooms = loadRooms();
-    return isset($rooms[$roomCode]);
-}
-
+/**
+ * Generate a unique room code
+ */
 function generateRoomCode(int $length = 6): string
 {
     $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    do {
-        $code = '';
-        for ($i = 0; $i < $length; $i++) {
-            $code .= $characters[random_int(0, strlen($characters) - 1)];
-        }
-        $code = normalizeRoomCode($code);
-    } while (roomExists($code));
-
-    return $code;
+    $code = '';
+    for ($i = 0; $i < $length; $i++) {
+        $code .= $characters[random_int(0, strlen($characters) - 1)];
+    }
+    return normalizeRoomCode($code);
 }
 
-function createRoom(string $username): string
+/**
+ * Get all active rooms from session storage
+ */
+function getAllRooms(): array
 {
-    $username = sanitizeUsername($username);
-    $rooms = loadRooms();
+    if (!isset($_SESSION['all_rooms'])) {
+        $_SESSION['all_rooms'] = [];
+    }
+    return $_SESSION['all_rooms'];
+}
 
-    $roomCode = generateRoomCode();
-    $rooms[$roomCode] = [
-        'host' => $username,
-        'players' => [$username],
-        'created_at' => time(),
-    ];
-
-    if (!saveRooms($rooms)) {
-        throw new RuntimeException('Unable to save room.');
+/**
+ * Create a new room (requires Spotify authentication)
+ */
+function createRoom(): string
+{
+    if (empty($_SESSION['access_token'])) {
+        throw new RuntimeException('Spotify authentication required.');
     }
 
+    $roomCode = generateRoomCode();
+    $rooms = getAllRooms();
+    
+    // Ensure room code is unique
+    while (isset($rooms[$roomCode])) {
+        $roomCode = generateRoomCode();
+    }
+    
+    $spotifyUser = $_SESSION['spotify_user'] ?? [];
+    $rooms[$roomCode] = [
+        'host_id' => $spotifyUser['id'] ?? 'unknown',
+        'players' => [
+            [
+                'id' => $spotifyUser['id'] ?? 'unknown',
+                'name' => $spotifyUser['display_name'] ?? 'Unknown Player',
+                'image' => $spotifyUser['images'][0]['url'] ?? null,
+            ]
+        ],
+        'created_at' => time(),
+    ];
+    
+    $_SESSION['all_rooms'] = $rooms;
     return $roomCode;
 }
 
-function joinRoom(string $roomCode, string $username): void
+/**
+ * Join a room (requires Spotify authentication)
+ */
+function joinRoom(string $roomCode): bool
 {
-    $roomCode = normalizeRoomCode($roomCode);
-    $username = sanitizeUsername($username);
+    if (empty($_SESSION['access_token'])) {
+        throw new RuntimeException('Spotify authentication required.');
+    }
 
-    $rooms = loadRooms();
+    $roomCode = normalizeRoomCode($roomCode);
+    $rooms = getAllRooms();
+    
     if (!isset($rooms[$roomCode])) {
         throw new InvalidArgumentException('Room not found.');
     }
-
-    if (in_array($username, $rooms[$roomCode]['players'], true)) {
-        throw new InvalidArgumentException('Username already exists in that room.');
+    
+    $spotifyUser = $_SESSION['spotify_user'] ?? [];
+    $userId = $spotifyUser['id'] ?? 'unknown';
+    $userName = $spotifyUser['display_name'] ?? 'Unknown Player';
+    
+    // Check if player already in room
+    foreach ($rooms[$roomCode]['players'] as $player) {
+        if ($player['id'] === $userId) {
+            return true; // Already in room
+        }
     }
-
-    $rooms[$roomCode]['players'][] = $username;
-
-    if (!saveRooms($rooms)) {
-        throw new RuntimeException('Unable to save room.');
-    }
+    
+    // Add player to room
+    $rooms[$roomCode]['players'][] = [
+        'id' => $userId,
+        'name' => $userName,
+        'image' => $spotifyUser['images'][0]['url'] ?? null,
+    ];
+    
+    $_SESSION['all_rooms'] = $rooms;
+    return true;
 }
 
+/**
+ * Get room details
+ */
 function getRoom(string $roomCode): ?array
 {
     $roomCode = normalizeRoomCode($roomCode);
-    $rooms = loadRooms();
+    $rooms = getAllRooms();
     return $rooms[$roomCode] ?? null;
 }
 
-function usersFilePath(): string
+/**
+ * Check if user is in a room
+ */
+function isUserInRoom(string $roomCode): bool
 {
-    return __DIR__ . '/users.json';
-}
-
-function loadUsers(): array
-{
-    $path = usersFilePath();
-
-    if (!file_exists($path)) {
-        file_put_contents($path, json_encode([], JSON_PRETTY_PRINT));
-    }
-
-    $fp = fopen($path, 'r');
-    if (!$fp) {
-        return [];
-    }
-
-    flock($fp, LOCK_SH);
-    $contents = stream_get_contents($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-
-    $users = json_decode($contents, true);
-    return is_array($users) ? $users : [];
-}
-
-function saveUsers(array $users): bool
-{
-    $path = usersFilePath();
-    $fp = fopen($path, 'c+');
-    if (!$fp) {
+    $roomCode = normalizeRoomCode($roomCode);
+    $room = getRoom($roomCode);
+    
+    if (!$room) {
         return false;
     }
-
-    flock($fp, LOCK_EX);
-    ftruncate($fp, 0);
-    rewind($fp);
-    $written = fwrite($fp, json_encode($users, JSON_PRETTY_PRINT));
-    fflush($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-
-    return $written !== false;
-}
-
-function userExists(string $username): bool
-{
-    $username = sanitizeUsername($username);
-    $users = loadUsers();
-    return isset($users[$username]);
-}
-
-function createUser(string $username): void
-{
-    $username = sanitizeUsername($username);
-    $users = loadUsers();
-    if (isset($users[$username])) {
-        throw new InvalidArgumentException('User already exists.');
+    
+    $spotifyUser = $_SESSION['spotify_user'] ?? [];
+    $userId = $spotifyUser['id'] ?? null;
+    
+    if (!$userId) {
+        return false;
     }
-    $users[$username] = [
-        'username' => $username,
-        'created_at' => time(),
-    ];
-    if (!saveUsers($users)) {
-        throw new RuntimeException('Unable to save user.');
+    
+    foreach ($room['players'] as $player) {
+        if ($player['id'] === $userId) {
+            return true;
+        }
     }
+    
+    return false;
 }
 
-function loginUser(string $username): void
-{
-    $username = sanitizeUsername($username);
-    if (!userExists($username)) {
-        createUser($username);
-    }
-    $_SESSION['username'] = $username;
-}
-
+/**
+ * Check if user is logged in (requires Spotify auth)
+ */
 function isLoggedIn(): bool
 {
-    return isset($_SESSION['username']) || isset($_SESSION['access_token']);
+    return !empty($_SESSION['access_token']);
 }
 
+/**
+ * Require Spotify login
+ */
 function requireLogin(): void
 {
     if (!isLoggedIn()) {
-        header('Location: login.php');
+        header('Location: spotify_login.php');
         exit;
     }
 }
+
 ?>

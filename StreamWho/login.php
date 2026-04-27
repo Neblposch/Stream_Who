@@ -1,24 +1,12 @@
 <?php
-require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/spotify_helper.php';
 
 startSession();
 
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
-    $username = trim($_POST['username']);
-    if ($username === '') {
-        $error = 'Please enter a username.';
-    } else {
-        try {
-            loginUser($username);
-            header('Location: lobby.php');
-            exit;
-        } catch (Exception $e) {
-            $error = $e->getMessage();
-        }
-    }
+// If already logged in, redirect to lobby
+if (!empty($_SESSION['access_token'])) {
+    header('Location: lobby.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -29,68 +17,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
     <title>Login - StreamWho</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .login-options {
+        .login-container {
             display: flex;
-            gap: 20px;
-            margin-top: 30px;
-            flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1DB954, #1aa34a);
         }
-        .login-option {
-            flex: 1;
-            min-width: 250px;
-            padding: 20px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
             text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
         }
-        .login-option h3 {
-            margin-top: 0;
+        .login-box h1 {
+            color: #1DB954;
+            margin-bottom: 20px;
         }
-        .login-option form {
-            margin-top: 15px;
+        .login-box p {
+            color: #666;
+            margin-bottom: 30px;
         }
         .spotify-btn {
             background-color: #1DB954;
             color: white;
-            padding: 10px 20px;
+            padding: 15px 40px;
             border: none;
             border-radius: 24px;
             cursor: pointer;
             font-weight: bold;
             text-decoration: none;
             display: inline-block;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
         .spotify-btn:hover {
             background-color: #1ed760;
         }
     </style>
 </head>
-<body class="lobby">
-    <div class="container">
-        <h1>Login to StreamWho</h1>
-        <?php if ($error): ?>
-            <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
-        <?php endif; ?>
-        
-        <div class="login-options">
-            <!-- Username Login -->
-            <div class="login-option">
-                <h3>Classic Login</h3>
-                <form action="login.php" method="post">
-                    <input type="text" name="username" placeholder="Enter your username" required>
-                    <button type="submit">Login</button>
-                </form>
-                <p>Don't have a username? Just enter one!</p>
-                <p><strong>Demo:</strong> Alice, Bob, Charlie, Diana</p>
-            </div>
-            
-            <!-- Spotify Login -->
-            <div class="login-option">
-                <h3>Login with Spotify</h3>
-                <p>Get personalized data from your Spotify account</p>
-                <a href="spotify_login.php" class="spotify-btn">Connect with Spotify</a>
-            </div>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>StreamWho</h1>
+            <p>Guess the person behind the song using Spotify data</p>
+            <a href="spotify_login.php" class="spotify-btn">Login with Spotify</a>
         </div>
     </div>
 </body>

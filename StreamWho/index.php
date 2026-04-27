@@ -1,5 +1,13 @@
 <?php
 require_once __DIR__ . '/spotify_helper.php';
+
+startSession();
+
+// If logged in, redirect to lobby
+if (!empty($_SESSION['access_token'])) {
+    header('Location: lobby.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,10 +22,10 @@ require_once __DIR__ . '/spotify_helper.php';
         <img height="60vh" src="img/logo.png" alt="logo">
         <h2>StreamWho</h2>
         <p>
-            <?php if (!empty($_SESSION['access_token']) || !empty($_SESSION['username'])): ?>
+            <?php if (!empty($_SESSION['access_token'])): ?>
                 <a href="logout.php">Log Out</a>
             <?php else: ?>
-                <a href="login.php">Log In</a>
+                <a href="spotify_login.php">Log In</a>
             <?php endif; ?>
         </p>
     </header>
@@ -41,17 +49,17 @@ require_once __DIR__ . '/spotify_helper.php';
                 It’s simple: observe, think, and read the room through music.</p>
             </div>
             <div id="log-in-start">
-                <button><a href="login.php">Log In!</a></button>
+                <button><a href="spotify_login.php">Log In with Spotify!</a></button>
             </div>
         </section>
     </main>
 
     <footer>
         <a href="?">Impressum</a> | 
-        <?php if (!empty($_SESSION['access_token']) || !empty($_SESSION['username'])): ?>
+        <?php if (!empty($_SESSION['access_token'])): ?>
             <a href="logout.php">Log Out</a>
         <?php else: ?>
-            <a href="login.php">Log In</a>
+            <a href="spotify_login.php">Log In</a>
         <?php endif; ?>
     </footer>
 </body>

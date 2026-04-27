@@ -2,31 +2,65 @@
 session_start();
 
 require_once 'functions.php';
+require_once 'spotify_helper.php';
 
-$jsonFile = 'data/spotifyAPI.json';
+/**
+ * Fetch a player's top tracks from Spotify API
+ */
+function getPlayerTopTracks($userId, $limit = 50, $timeRange = 'medium_term') {
+    // For current user, use stored access token
+    if ($userId === ($_SESSION['spotify_user']['id'] ?? null)) {
+        $url = "https://api.spotify.com/v1/me/top/tracks?limit={$limit}&time_range={$timeRange}";
+        $data = fetchSpotify($url);
+        
+        if (isset($data['error'])) {
+            return [];
+        }
+        
+        $tracks = [];
+        foreach ($data['items'] as $track) {
+            $tracks[] = [
+                'id' => $track['id'],
+                'name' => $track['name'],
+                'artist' => $track['artists'][0]['name'] ?? 'Unknown',
+                'cover' => $track['album']['images'][0]['url'] ?? '',
+                'playcount' => $track['popularity'] ?? 0, // Use popularity as proxy for playcount
+            ];
+        }
+        return $tracks;
+    }
+    
+    // For other players, we would need their tokens (not available in this implementation)
+    // Return empty for now
+    return [];
+}
 
+/**
+ * Load players with their top tracks from the current room
+ */
 function loadPlayers() {
-    global $jsonFile;
-    $data = json_decode(file_get_contents($jsonFile), true);
-    $allPlayers = $data['players'];
-
-    // Get current room players
     $roomCode = $_SESSION['current_room'] ?? null;
     if (!$roomCode) {
         return [];
     }
+    
     $roomData = getRoom($roomCode);
-    if (!$roomData) {
+    if (!$roomData || empty($roomData['players'])) {
         return [];
     }
-    $roomPlayerNames = $roomData['players'];
-
-    // Filter players to those in the room
-    $players = array_filter($allPlayers, function($player) use ($roomPlayerNames) {
-        return in_array($player['name'], $roomPlayerNames);
-    });
-
-    return array_values($players); // Reindex array
+    
+    $players = [];
+    foreach ($roomData['players'] as $player) {
+        $tracks = getPlayerTopTracks($player['id']);
+        $players[] = [
+            'id' => $player['id'],
+            'name' => $player['name'],
+            'image' => $player['image'],
+            'tracks' => $tracks,
+        ];
+    }
+    
+    return $players;
 }
 
 function getNextPlayer($players) {
@@ -39,12 +73,18 @@ function getNextPlayer($players) {
 }
 
 function getRandomTrack($player) {
+    if (empty($player['tracks'])) {
+        return null;
+    }
+    
     $available = array_filter($player['tracks'], function($track) {
         return !in_array($track['id'], $_SESSION['used_tracks'] ?? []);
     });
+    
     if (empty($available)) {
         return null;
     }
+    
     $random = $available[array_rand($available)];
     $_SESSION['used_tracks'][] = $random['id'];
     return $random;

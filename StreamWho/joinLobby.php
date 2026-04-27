@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/spotify_helper.php';
 
 startSession();
 requireLogin();
 
-$currentUsername = $_SESSION['username'];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
         $error = 'Please enter a valid lobby code.';
     } else {
         try {
-            joinRoom($roomCode, $currentUsername);
+            joinRoom($roomCode);
             header("Location: game.php?room={$roomCode}");
             exit;
         } catch (Exception $e) {
@@ -36,9 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
 <div class="menu">
     <div class="burger">&#9776;</div>
     <div class="menu-content">
-        <a href="index.php">Leave</a>
+        <a href="logout.php">Logout</a>
         <a href="#">Impressum</a>
-        <a href="#">More</a>
     </div>
 </div>
 

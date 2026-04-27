@@ -1,11 +1,13 @@
 <?php
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/spotify_helper.php';
 
 startSession();
 requireLogin();
 
-$currentUsername = $_SESSION['username'];
+$spotifyUser = $_SESSION['spotify_user'] ?? [];
+$currentUserId = $spotifyUser['id'] ?? 'unknown';
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
 $roomData = null;
 $roomError = '';
@@ -16,7 +18,7 @@ if ($roomCode === '') {
     $roomData = getRoom($roomCode);
     if (!$roomData) {
         $roomError = 'Room not found.';
-    } elseif (!in_array($currentUsername, $roomData['players'], true)) {
+    } elseif (!isUserInRoom($roomCode)) {
         $roomError = 'You are not a member of this room.';
     } else {
         $_SESSION['current_room'] = $roomCode;
@@ -41,12 +43,15 @@ if ($roomCode === '') {
     <?php else: ?>
         <div class="container room-info">
             <h2>Room: <?= htmlspecialchars($roomCode) ?></h2>
-            <p>Host: <?= htmlspecialchars($roomData['host']) ?></p>
+            <p>Players:</p>
             <ul>
                 <?php foreach ($roomData['players'] as $player): ?>
                     <li>
-                        <?= htmlspecialchars($player) ?>
-                        <?php if ($player === $roomData['host']): ?>
+                        <?php if (!empty($player['image'])): ?>
+                            <img src="<?= htmlspecialchars($player['image']) ?>" alt="<?= htmlspecialchars($player['name']) ?>" style="height: 30px; border-radius: 15px; margin-right: 10px;">
+                        <?php endif; ?>
+                        <?= htmlspecialchars($player['name']) ?>
+                        <?php if ($player['id'] === $roomData['host_id']): ?>
                             (host)
                         <?php endif; ?>
                     </li>

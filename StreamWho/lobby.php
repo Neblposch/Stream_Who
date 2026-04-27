@@ -1,17 +1,18 @@
 <?php
-include  'functions.php';
+require_once 'functions.php';
+require_once 'spotify_helper.php';
 
 startSession();
 requireLogin();
 
-$username = $_SESSION['username'];
+$spotifyUser = $_SESSION['spotify_user'] ?? [];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     if ($action === 'create') {
         try {
-            $roomCode = createRoom($username);
+            $roomCode = createRoom();
             header("Location: game.php?room={$roomCode}");
             exit;
         } catch (Exception $e) {
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Enter a valid room code.';
         } else {
             try {
-                joinRoom($roomCode, $username);
+                joinRoom($roomCode);
                 header("Location: game.php?room={$roomCode}");
                 exit;
             } catch (Exception $e) {
@@ -47,9 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="menu">
     <div class="burger">&#9776;</div>
     <div class="menu-content">
-        <a href="index.php">Leave</a>
+        <a href="logout.php">Logout</a>
         <a href="#">Impressum</a>
-        <a href="#">More</a>
     </div>
 </div>
 
@@ -61,7 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <p>Your username: <strong><?= htmlspecialchars($username) ?></strong></p>
+    <div class="user-info">
+        <h2>Welcome, <?= htmlspecialchars($spotifyUser['display_name'] ?? 'Player') ?>!</h2>
+        <?php if (!empty($spotifyUser['images'][0]['url'])): ?>
+            <img src="<?= htmlspecialchars($spotifyUser['images'][0]['url']) ?>" alt="avatar" style="height: 60px; border-radius: 30px;">
+        <?php endif; ?>
+    </div>
 
     <form action="lobby.php" method="post" class="lobby-form">
         <div class="form-row">
