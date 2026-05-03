@@ -6,7 +6,7 @@ session_start();
 
 const SPOTIFY_CLIENT_ID = '76cdb795f3bf44b99361f82a0c16f9d0';
 // Use the production redirect you provided
-const SPOTIFY_REDIRECT_URI = 'https://tpos.at/streamwho/loggedIn_prod.php';
+const SPOTIFY_REDIRECT_URI = 'https://tpos.at/streamwho/joinLobby.php';
 
 function generateCodeVerifier($length = 128) {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
