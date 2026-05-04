@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+
+actor User
+
+rectangle "Stream Who" {
+
+  User --> (Create Room)
+  User --> (Join Room)
+  User --> (Leave Room)
+
+  User --> (Start Game)
+  User --> (Guess Artist)
+  User --> (View Score)
+
+  (Start Game) --> (Join Room) : <<include>>
+}
+@enduml
