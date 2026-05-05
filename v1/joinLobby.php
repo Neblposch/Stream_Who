@@ -1,26 +1,26 @@
 <?php
-require_once __DIR__ . '/functions.php';
+    require_once __DIR__ . '/functions.php';
 
-startSession();
-requireLogin();
+    startSession();
+    requireLogin();
 
-$currentUsername = $_SESSION['username'];
-$error = '';
+    $currentUsername = $_SESSION['username'];
+    $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
-    $roomCode = normalizeRoomCode($_POST['lobbyCode']);
-    if ($roomCode === '') {
-        $error = 'Please enter a valid lobby code.';
-    } else {
-        try {
-            joinRoom($roomCode, $currentUsername);
-            header("Location: game.php?room={$roomCode}");
-            exit;
-        } catch (Exception $e) {
-            $error = $e->getMessage();
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lobbyCode'])) {
+        $roomCode = normalizeRoomCode($_POST['lobbyCode']);
+        if ($roomCode === '') {
+            $error = 'Please enter a valid lobby code.';
+        } else {
+            try {
+                joinRoom($roomCode, $currentUsername);
+                header("Location: game.php?room={$roomCode}");
+                exit;
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
         }
     }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
