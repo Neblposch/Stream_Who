@@ -6,58 +6,5 @@
             "Guest6789"
         ],
         "created_at": 1710000000
-    },
-    "JQPUF8": {
-        "host": "Player5589",
-        "players": [
-            "Player5589"
-        ],
-        "created_at": 1776278484
-    },
-    "6AKL3Q": {
-        "host": "Player4167",
-        "players": [
-            "Player4167",
-            "Player4603"
-        ],
-        "created_at": 1776690771
-    },
-    "X2WHXM": {
-        "host": "Ems",
-        "players": [
-            "Ems"
-        ],
-        "created_at": 1776691365
-    },
-    "VGBXH5": {
-        "host": "Alice",
-        "players": [
-            "Alice"
-        ],
-        "created_at": 1776691808
-    },
-    "01KADH": {
-        "host": "Alice",
-        "players": [
-            "Alice",
-            "Bob"
-        ],
-        "created_at": 1776691906
-    },
-    "GLIPGP": {
-        "host": "Alice",
-        "players": [
-            "Alice",
-            "Charlie"
-        ],
-        "created_at": 1776693164
-    },
-    "UDPM3Z": {
-        "host": "Bob",
-        "players": [
-            "Bob",
-            "Alice"
-        ],
-        "created_at": 1776693326
     }
 }

@@ -1,0 +1,66 @@
+<?php
+require_once __DIR__ . '/spotify_helper.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Who</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <img height="60vh" src="img/logo.png" alt="logo">
+        <h2>StreamWho</h2>
+        <p>
+            <?php if (!empty($_SESSION['access_token'])): ?>
+                <a href="logout.php">Log Out</a>
+            <?php else: ?>
+                <a href="login.php">Log In</a>
+            <?php endif; ?>
+        </p>
+    </header>
+
+    <main>
+        <section id="info">
+            <div id="vid" class="small-info-box">
+                <img src="img/placeholderVid.png" alt="placeholder">
+            </div>
+            <div id="text" class="small-info-box">
+                <p>Lorem ipsum dolor sit amet consectetur adipiscing elit.
+                    Quisque faucibus ex sapien vitae pellentesque sem placerat.
+                    In id cursus mi pretium tellus duis convallis. Tempus leo eu
+                    aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus
+                    nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia
+                    integer nunc posuere. Ut hendrerit semper vel class aptent taciti
+                    sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque
+                    faucibus ex sapien vitae pellentesque sem placerat. In id cursus
+                    mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna
+                    tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas.
+                    Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut
+                    hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent
+                    per conubia nostra inceptos himenaeos.</p>
+            </div>
+            <div id="log-in-start">
+                <button>
+                    <?php if (!empty($_SESSION['access_token'])): ?>
+                        <a href="logout.php">Log Out!</a>
+                    <?php else: ?>
+                        <a href="login.php">Log In!</a>
+                    <?php endif; ?>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <?php if (!empty($_SESSION['access_token'])): ?>
+            <a href="?">Impressum</a> | <a href="logout.php">Log Out</a>
+        <?php else: ?>
+            <a href="?">Impressum</a> | <a href="login.php">Log In</a>
+        <?php endif; ?>
+    </footer>
+</body>
+</html>
