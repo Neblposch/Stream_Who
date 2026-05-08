@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/spotify_helper.php';
+
+startSession();
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +18,13 @@
     <header class="header">
         <img height="60vh" src="img/logo.png" alt="logo">
         <h2>StreamWho</h2>
-        <p><a href="login.php">Log In</a></p>
+        <p>
+            <?php if (!empty($_SESSION['access_token'])): ?>
+                <a href="logout.php">Log Out</a>
+            <?php else: ?>
+                <a href="spotify_login.php">Log In</a>
+            <?php endif; ?>
+        </p>
     </header>
 
     <main>
@@ -32,13 +46,18 @@
                 It’s simple: observe, think, and read the room through music.</p>
             </div>
             <div id="log-in-start">
-                <button><a href="login.php">Log In!</a></button>
+                <button><a href="spotify_login.php">Log In with Spotify!</a></button>
             </div>
         </section>
     </main>
 
     <footer>
-        <a href="?">Impressum</a> | <a href="login.php">Log In</a>
+        <a href="?">Impressum</a> | 
+        <?php if (!empty($_SESSION['access_token'])): ?>
+            <a href="logout.php">Log Out</a>
+        <?php else: ?>
+            <a href="spotify_login.php">Log In</a>
+        <?php endif; ?>
     </footer>
 </body>
 </html>
