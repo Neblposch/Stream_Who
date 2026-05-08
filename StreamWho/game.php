@@ -111,18 +111,24 @@ if ($roomCode === '') {
                 disableButtons();
             }
 
+            // Updated render() in `game.php`
             function render() {
                 if (gameState.track) {
-                    document.body.style.backgroundImage = `url(${gameState.track.cover_url})`;
-                    document.getElementById('trackCover').src = gameState.track.cover_url;
-                    document.getElementById('trackTitle').textContent = gameState.track.title;
-                    document.getElementById('trackArtist').textContent = gameState.track.artist;
+                    const cover = gameState.track.cover || '';
+                    document.body.style.backgroundImage = cover ? `url(${cover})` : 'none';
+                    document.getElementById('trackCover').src = cover;
+                    document.getElementById('trackCover').alt = gameState.track.title ? `${gameState.track.title} cover` : 'Track Cover';
+                    document.getElementById('trackTitle').textContent = gameState.track.title || '';
+                    document.getElementById('trackArtist').textContent = gameState.track.artist || '';
                 } else {
                     document.body.style.backgroundImage = 'none';
                     document.getElementById('trackCover').src = '';
+                    document.getElementById('trackCover').alt = 'Track Cover';
                     document.getElementById('trackTitle').textContent = 'No track loaded';
                     document.getElementById('trackArtist').textContent = '';
                 }
+
+
 
                 const playersDiv = document.getElementById('players');
                 playersDiv.innerHTML = '';
