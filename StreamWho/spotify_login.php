@@ -21,3 +21,4 @@ $authorize = 'https://accounts.spotify.com/authorize?' . http_build_query($param
 header('Location: ' . $authorize);
 exit;
 ?>
+

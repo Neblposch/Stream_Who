@@ -1,129 +1,90 @@
 <?php
-session_start();
+// php
+// File: `spotify_helper.php`
+// Minimal helper file — no callback logic here.
 
-// Spotify PKCE helper for production URL (tpos.at)
-// Copy of original helper but with redirect URI set to your live callback.
+require_once __DIR__ . '/functions.php';
+startSession();
 
 const SPOTIFY_CLIENT_ID = '76cdb795f3bf44b99361f82a0c16f9d0';
-// Use the production redirect you provided
-const SPOTIFY_REDIRECT_URI = 'https://tpos.at/streamwho/joinLobby.php';
+const SPOTIFY_REDIRECT_URI = 'https://tpos.at/streamwho/spotify_callback.php'; // keep callback separate
 
-function generateCodeVerifier($length = 128) {
-    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    $verifier = '';
-    for ($i = 0; $i < $length; $i++) {
-        $verifier .= $chars[random_int(0, strlen($chars) - 1)];
-    }
-    return $verifier;
+function generateCodeVerifier(int $length = 64): string
+{
+    return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
 }
 
-function generateCodeChallenge($verifier) {
-    $hash = hash('sha256', $verifier, true);
-    return rtrim(strtr(base64_encode($hash), '+/', '-_'), '=');
+function generateCodeChallenge(string $verifier): string
+{
+    return rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
 }
 
-function fetchSpotify($url, $allowRefresh = true) {
-    if (empty($_SESSION['access_token'])) {
-        return ['error' => 'no_token'];
-    }
-
-    // Refresh if expired
-    if (!empty($_SESSION['expires_at']) && time() >= $_SESSION['expires_at']) {
-        if ($allowRefresh && !empty($_SESSION['refresh_token'])) {
-            $ref = refreshAccessToken($_SESSION['refresh_token']);
-            if (isset($ref['access_token'])) {
-                $_SESSION['access_token'] = $ref['access_token'];
-                if (isset($ref['refresh_token'])) $_SESSION['refresh_token'] = $ref['refresh_token'];
-                $_SESSION['expires_at'] = time() + ($ref['expires_in'] ?? 3600);
-            } else {
-                return ['error' => 'refresh_failed', 'detail' => $ref];
-            }
-        }
-    }
-
-    $access_token = $_SESSION['access_token'];
-
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $access_token"]);
-    $res = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $retryAfter = null;
-    if ($httpCode == 0) {
-        $err = curl_error($ch);
-        curl_close($ch);
-        return ['error' => 'curl_error', 'detail' => $err];
-    }
-    // Respect 429 Retry-After with exponential backoff
-    if ($httpCode == 429) {
-        $headers = curl_getinfo($ch);
-        // Try to read Retry-After from response headers via separate request not set up here; fallback
-        $retryAfter = 1;
-    }
-    curl_close($ch);
-
-    if ($httpCode == 429) {
-        // simple backoff
-        sleep($retryAfter);
-        return fetchSpotify($url, false);
-    }
-
-    $data = json_decode($res, true);
-    if ($httpCode >= 400) {
-        return ['error' => 'api_error', 'status' => $httpCode, 'body' => $data];
-    }
-    return $data;
-}
-
-function exchangeCodeForToken($code, $code_verifier) {
-    $postData = [
+function exchangeCodeForToken(string $code, string $code_verifier): array
+{
+    $post = http_build_query([
+        'client_id' => SPOTIFY_CLIENT_ID,
         'grant_type' => 'authorization_code',
         'code' => $code,
         'redirect_uri' => SPOTIFY_REDIRECT_URI,
-        'client_id' => SPOTIFY_CLIENT_ID,
-        'code_verifier' => $code_verifier
-    ];
+        'code_verifier' => $code_verifier,
+    ]);
 
     $ch = curl_init('https://accounts.spotify.com/api/token');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $resp = curl_exec($ch);
+    $err = curl_error($ch);
     curl_close($ch);
 
-    $tokenData = json_decode($response, true);
-    if ($httpCode >= 400) {
-        return ['error' => 'token_error', 'status' => $httpCode, 'body' => $tokenData];
+    if ($resp === false) {
+        return ['error' => $err ?: 'curl_error'];
     }
-    return $tokenData;
+
+    $data = json_decode($resp, true);
+    return $data ?: ['error' => 'invalid_response'];
 }
 
-function refreshAccessToken($refresh_token) {
-    $postData = [
-        'grant_type' => 'refresh_token',
-        'refresh_token' => $refresh_token,
-        'client_id' => SPOTIFY_CLIENT_ID
-    ];
+function fetchSpotify(string $url): array
+{
+    if (empty($_SESSION['access_token'])) {
+        return ['error' => 'no_access_token'];
+    }
 
-    $ch = curl_init('https://accounts.spotify.com/api/token');
+    $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-    $response = curl_exec($ch);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $_SESSION['access_token'],
+        'Accept: application/json',
+    ]);
+    $resp = curl_exec($ch);
+    $err = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $tokenData = json_decode($response, true);
-    if ($httpCode >= 400) {
-        return ['error' => 'refresh_error', 'status' => $httpCode, 'body' => $tokenData];
+    if ($resp === false) {
+        return ['error' => $err ?: 'curl_error'];
     }
-    return $tokenData;
+
+    $data = json_decode($resp, true);
+    if ($httpCode >= 400) {
+        return ['error' => $data ?? 'http_error', 'status' => $httpCode];
+    }
+
+    return $data ?: ['error' => 'invalid_response'];
 }
 
-function logout() {
-    session_unset();
+function logout(): void
+{
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params['path'], $params['domain'],
+            $params['secure'], $params['httponly']
+        );
+    }
     session_destroy();
 }
-
 ?>
