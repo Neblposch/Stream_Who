@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="Untitled Gantt Project" company="" webLink="http://" view-date="2026-02-15" view-index="0" gantt-divider-location="351" resource-divider-location="300" version="3.3.3322" locale="en_US">
+    <description/>
+    <view zooming-state="default:6" id="gantt-chart">
+        <field id="tpd3" name="Name" width="200" order="0"/>
+        <field id="tpd4" name="Begin date" width="75" order="1"/>
+        <field id="tpd5" name="End date" width="75" order="2"/>
+        <field id="tpd15" name="Notes" width="20" order="3"/>
+        <option id="filter.completedTasks" value="false"/>
+        <option id="filter.dueTodayTasks" value="false"/>
+        <option id="filter.overdueTasks" value="false"/>
+        <option id="filter.inProgressTodayTasks" value="false"/>
+        <option id="color.recent"><![CDATA[#cc00ff #99ff99]]></option>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Name" width="209" order="0"/>
+        <field id="1" name="Default role" width="87" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="0" uid="f52c173d610e41d2a501021f30403451" name="Logo design" meeting="false" start="2026-02-23" duration="1" complete="0" expand="true"/>
+        <task id="1" uid="b441e2b130234240bc6ac48200c2d280" name="Farbschema" meeting="false" start="2026-02-23" duration="1" complete="0" expand="true"/>
+        <task id="2" uid="c06b647da23b4bf6933b271ed2d0e438" name="universal interaction design" meeting="false" start="2026-02-23" duration="6" complete="0" expand="true"/>
+        <task id="3" uid="efe501566b4041fd9836376d3e618a21" name="responsive design" meeting="false" start="2026-03-02" duration="6" complete="0" expand="true"/>
+        <task id="4" uid="19208ed0cb6a4cfaae6146e19527f93f" name="Seitenstruktur" color="#99ff99" meeting="false" start="2026-03-16" duration="6" complete="0" expand="true"/>
+        <task id="5" uid="f62c914e511943fca682896e2f82875f" name="basic theme" color="#99ff99" meeting="false" start="2026-03-16" duration="6" complete="0" expand="true"/>
+        <task id="6" uid="c95b890bbbb34e0581fc63654e4ed48b" name="Konto management Frontend" color="#99ff99" meeting="false" start="2026-03-23" duration="12" complete="0" expand="true"/>
+        <task id="7" uid="89e493666e154000ba0455a65f263b50" name="responsive design" color="#99ff99" meeting="false" start="2026-03-31" duration="11" complete="0" expand="true"/>
+        <task id="8" uid="6419bec62a4949dd881178f4d175a0c1" name="JS Logic" color="#99ff99" meeting="false" start="2026-03-30" duration="46" complete="0" expand="true"/>
+        <task id="9" uid="0840ca37cbaf4b28902d9786f2a2f28e" name="Spielmechanik" color="#cc00ff" meeting="false" start="2026-03-30" duration="46" complete="0" expand="true"/>
+        <task id="10" uid="a72ee494b5b74aaba84fd52cb5d27753" name="Konto management backend" color="#cc00ff" meeting="false" start="2026-03-24" duration="11" complete="0" expand="true"/>
+        <task id="11" uid="32dfd8d153c04c80a44ef5d1323c2e6b" name="Data traffic management" color="#cc00ff" meeting="false" start="2026-05-25" duration="11" complete="0" expand="true"/>
+        <task id="14" uid="70aad74d0c0a420cb8609d06e99e3cea" name="Milestone1" meeting="true" start="2026-03-02" duration="0" complete="0" expand="true"/>
+        <task id="15" uid="8790af8c41104afdbf6f17186447e196" name="Milestone2" meeting="true" start="2026-03-23" duration="0" complete="0" expand="true"/>
+        <task id="16" uid="bba66e6c1c8442b885db002bc00c99b5" name="Milestone3" meeting="true" start="2026-04-27" duration="0" complete="0" expand="true"/>
+        <task id="17" uid="21c869a3af254722ae1f47d226160794" name="Milestone4" meeting="true" start="2026-05-18" duration="0" complete="0" expand="true"/>
+        <task id="18" uid="d6b5a41cd87546a8a3045ca81da7341d" name="Milestone5" meeting="true" start="2026-06-08" duration="0" complete="0" expand="true"/>
+    </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+</project>

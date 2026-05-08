@@ -44,20 +44,11 @@
         ],
         "created_at": 1776691906
     },
-    "GLIPGP": {
-        "host": "Alice",
+    "CPR9OL": {
+        "host": "Charlie",
         "players": [
-            "Alice",
             "Charlie"
         ],
-        "created_at": 1776693164
-    },
-    "UDPM3Z": {
-        "host": "Bob",
-        "players": [
-            "Bob",
-            "Alice"
-        ],
-        "created_at": 1776693326
+        "created_at": 1776692742
     }
 }
