@@ -267,6 +267,33 @@ button:hover{
     font-size:2vh;
 }
 
+/*lobby.php*/
+.user-info{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-left: -15vw;
+}
+.user-info img{
+    height: 60px;
+    border-radius: 30px;
+    justify-self: right;
+    margin-right: 5%;
+}
+.user-info h2{
+    font-size: 4vh;
+    font-weight: bold;
+    font-family: mainFont;
+    color: var(--text-color);
+    padding-top: 1vh;
+}
+#joinSection button{
+    margin-top: 2%;
+    align-items: center;
+}
+#joinSection{
+    align-items: center;
+}
+
 /*==Game==*/
 
 /* Game Page Styles */
