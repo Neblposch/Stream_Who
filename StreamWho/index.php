@@ -20,6 +20,7 @@ startSession();
         <h2>StreamWho</h2>
         <p>
             <?php if (!empty($_SESSION['access_token'])): ?>
+                <?php header("Location: spotify_login.php");?>
                 <a href="logout.php">Log Out</a>
             <?php else: ?>
                 <a href="spotify_login.php">Log In</a>

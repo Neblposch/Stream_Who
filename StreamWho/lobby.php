@@ -62,27 +62,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <div class="user-info">
-        <h2>Welcome, <?= htmlspecialchars($spotifyUser['display_name'] ?? 'Player') ?>!</h2>
         <?php if (!empty($spotifyUser['images'][0]['url'])): ?>
             <img src="<?= htmlspecialchars($spotifyUser['images'][0]['url']) ?>" alt="avatar" style="height: 60px; border-radius: 30px;">
         <?php endif; ?>
+        <h2>Welcome, <?= htmlspecialchars($spotifyUser['display_name'] ?? 'Player') ?>!</h2>
     </div>
 
     <form action="lobby.php" method="post" class="lobby-form">
-        <div class="form-row">
+        <div class="form-row" id="createRoomDiv">
             <button type="submit" name="action" value="create">Create Room</button>
         </div>
     </form>
 
-    <form action="lobby.php" method="post" class="lobby-form">
-        <label for="roomCode">Room Code</label>
-        <input id="roomCode" type="text" name="roomCode" placeholder="Enter room code">
-
+    <form action="lobby.php" method="post" class="lobby-form" id="lobbyForm">
         <div class="form-row">
-            <button type="submit" name="action" value="join">Join Room</button>
+            <button type="button" id="showJoin">Join Room</button>
+        </div>
+        <div id="joinSection" style="display: none;">
+            <input id="roomCode" type="text" name="roomCode" placeholder="Enter room code">
+            <div class="form-row">
+                <button type="submit" name="action" value="join">
+                    Confirm Join
+                </button>
+            </div>
         </div>
     </form>
-</div>
+
+    <script>
+        const showJoin = document.getElementById('showJoin')
+        const joinSection = document.getElementById('joinSection')
+        const createRoom = document.getElementById('createRoomDiv')
+        showJoin.addEventListener('click', () => {
+            joinSection.style.display = 'block'
+            showJoin.style.display = 'none'
+            createRoom.style.display = 'none'
+        })
+    </script>
+    </div>
 
 <script>
     const audio = document.getElementById("lobbyAudio")
