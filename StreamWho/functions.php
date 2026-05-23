@@ -31,6 +31,100 @@ function getRoomsFilePath(): string
     return __DIR__ . '/rooms.json';
 }
 
+function normalizePlayerData(mixed $player): array
+{
+    if (is_array($player)) {
+        return [
+            'id' => (string)($player['id'] ?? $player['name'] ?? 'unknown'),
+            'name' => (string)($player['name'] ?? $player['id'] ?? 'Unknown Player'),
+            'image' => $player['image'] ?? null,
+        ];
+    }
+
+    return [
+        'id' => (string)$player,
+        'name' => (string)$player,
+        'image' => null,
+    ];
+}
+
+function defaultGameState(): array
+{
+    return [
+        'status' => 'idle',
+        'round_number' => 0,
+        'round_id' => null,
+        'source_player_id' => null,
+        'correct_player_id' => null,
+        'track' => null,
+        'guesses' => [],
+        'scores' => [],
+        'used_track_ids' => [],
+        'used_source_player_ids' => [],
+        'round_started_at' => null,
+        'expires_at' => null,
+        'revealed_at' => null,
+    ];
+}
+
+function normalizeRoomData(array $room): array
+{
+    $players = [];
+    foreach ($room['players'] ?? [] as $player) {
+        $players[] = normalizePlayerData($player);
+    }
+
+    $hostId = (string)($room['host_id'] ?? $room['host'] ?? ($players[0]['id'] ?? 'unknown'));
+
+    $game = is_array($room['game'] ?? null) ? $room['game'] : [];
+    $game = array_replace(defaultGameState(), $game);
+
+    if (!is_array($game['scores'] ?? null)) {
+        $game['scores'] = [];
+    }
+
+    if (!is_array($game['guesses'] ?? null)) {
+        $game['guesses'] = [];
+    }
+
+    if (!is_array($game['used_track_ids'] ?? null)) {
+        $game['used_track_ids'] = [];
+    }
+
+    if (!is_array($game['used_source_player_ids'] ?? null)) {
+        $game['used_source_player_ids'] = [];
+    }
+
+    foreach ($players as $player) {
+        if (!array_key_exists($player['id'], $game['scores'])) {
+            $game['scores'][$player['id']] = 0;
+        }
+    }
+
+    $game['used_track_ids'] = array_values(array_unique(array_filter(array_map('strval', $game['used_track_ids']), static fn($value) => $value !== '')));
+    $game['used_source_player_ids'] = array_values(array_unique(array_filter(array_map('strval', $game['used_source_player_ids']), static fn($value) => $value !== '')));
+
+    return array_merge($room, [
+        'host_id' => $hostId,
+        'players' => $players,
+        'created_at' => $room['created_at'] ?? time(),
+        'game' => $game,
+    ]);
+}
+
+function normalizeRooms(array $rooms): array
+{
+    foreach ($rooms as $code => $room) {
+        if (!is_array($room)) {
+            continue;
+        }
+
+        $rooms[$code] = normalizeRoomData($room);
+    }
+
+    return $rooms;
+}
+
 function getAllRooms(): array
 {
     $file = getRoomsFilePath();
@@ -54,7 +148,6 @@ function getAllRooms(): array
 
     $data = json_decode($contents, true);
     if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-        // invalid json -> treat as empty to avoid fatal errors
         return [];
     }
 
@@ -62,7 +155,12 @@ function getAllRooms(): array
         return [];
     }
 
-    return $data;
+    $normalized = normalizeRooms($data);
+    if ($normalized !== $data) {
+        saveAllRooms($normalized);
+    }
+
+    return $normalized;
 }
 
 function saveAllRooms(array $rooms): void
@@ -75,35 +173,101 @@ function saveAllRooms(array $rooms): void
         throw new RuntimeException('Failed to encode rooms data: ' . json_last_error_msg());
     }
 
-    // create a temporary file in the same directory
     $tmp = tempnam($dir, 'rooms_');
     if ($tmp === false) {
         throw new RuntimeException('Unable to create temporary file for rooms in ' . $dir);
     }
 
-    // write to temp with exclusive lock
     $written = file_put_contents($tmp, $json, LOCK_EX);
     if ($written === false) {
         @unlink($tmp);
         throw new RuntimeException('Unable to write temporary rooms file: ' . $tmp);
     }
 
-    // Try atomic replace
     if (!@rename($tmp, $file)) {
-        // rename failed (common on Windows if target is locked) -> try copy fallback
         if (!@copy($tmp, $file)) {
             @unlink($tmp);
             throw new RuntimeException('Unable to replace rooms file (rename and copy failed). Check permissions for ' . $file);
         }
-        // copy succeeded -> remove temp
         @unlink($tmp);
     }
 
-    // Optional: ensure file is non-empty
     clearstatcache(true, $file);
     if (filesize($file) === 0) {
         throw new RuntimeException('Rooms file is empty after write. Check filesystem/permissions for ' . $file);
     }
+}
+
+function getSpotifyAccountsFilePath(): string
+{
+    return __DIR__ . '/data/spotify_accounts.json';
+}
+
+function getSpotifyAccounts(): array
+{
+    $file = getSpotifyAccountsFilePath();
+    if (!file_exists($file)) {
+        return [];
+    }
+
+    $contents = file_get_contents($file);
+    if ($contents === false) {
+        throw new RuntimeException('Unable to read Spotify accounts file: ' . $file);
+    }
+
+    $data = json_decode($contents, true);
+    if (!is_array($data)) {
+        return [];
+    }
+
+    return $data;
+}
+
+function saveSpotifyAccounts(array $accounts): void
+{
+    $file = getSpotifyAccountsFilePath();
+    $dir = dirname($file);
+
+    if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+        throw new RuntimeException('Unable to create directory for Spotify accounts: ' . $dir);
+    }
+
+    $json = json_encode($accounts, JSON_PRETTY_PRINT);
+    if ($json === false) {
+        throw new RuntimeException('Failed to encode Spotify accounts data: ' . json_last_error_msg());
+    }
+
+    $bytes = file_put_contents($file, $json, LOCK_EX);
+    if ($bytes === false) {
+        throw new RuntimeException('Unable to write Spotify accounts file: ' . $file);
+    }
+}
+
+function saveSpotifyUserAccount(string $userId, array $profile, string $accessToken, ?string $refreshToken = null, int $expiresAt = 0): void
+{
+    $accounts = getSpotifyAccounts();
+    $accounts[$userId] = [
+        'profile' => $profile,
+        'access_token' => $accessToken,
+        'refresh_token' => $refreshToken,
+        'expires_at' => $expiresAt,
+        'updated_at' => time(),
+    ];
+
+    saveSpotifyAccounts($accounts);
+}
+
+function getStoredSpotifyUserAccount(string $userId): ?array
+{
+    $accounts = getSpotifyAccounts();
+    return $accounts[$userId] ?? null;
+}
+
+function removeStoredSpotifyUserAccount(string $userId): void
+{
+    $accounts = getSpotifyAccounts();
+    unset($accounts[$userId]);
+    saveSpotifyAccounts($accounts);
 }
 
 function createRoom(): string
@@ -134,6 +298,7 @@ function createRoom(): string
             ]
         ],
         'created_at' => time(),
+        'game' => defaultGameState(),
     ];
 
     saveAllRooms($rooms);
@@ -170,6 +335,7 @@ function joinRoom(string $roomCode): bool
         'image' => $userImage,
     ];
 
+    $rooms[$roomCode] = normalizeRoomData($rooms[$roomCode]);
     saveAllRooms($rooms);
     return true;
 }

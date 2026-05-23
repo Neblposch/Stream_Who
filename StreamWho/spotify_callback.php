@@ -47,6 +47,14 @@ if (isset($profile['error'])) {
 
 $_SESSION['spotify_user'] = $profile;
 
+saveSpotifyUserAccount(
+    $profile['id'] ?? 'unknown',
+    $profile,
+    $_SESSION['access_token'],
+    $_SESSION['refresh_token'] ?? null,
+    $_SESSION['expires_at'] ?? (time() + 3600)
+);
+
 // Redirect to lobby / main flow
 header('Location: lobby.php');
 exit;

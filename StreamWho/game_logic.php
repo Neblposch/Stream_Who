@@ -4,155 +4,347 @@ session_start();
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/spotify_helper.php';
 
-/**
- * Fetch a player's top tracks from Spotify API
- */
-function getPlayerTopTracks($userId, $limit = 50, $timeRange = 'medium_term') {
-    // For current user, use stored access token
-    if ($userId === ($_SESSION['spotify_user']['id'] ?? null)) {
-        $url = "https://api.spotify.com/v1/me/top/tracks?limit={$limit}&time_range={$timeRange}";
-        $data = fetchSpotify($url);
-        
-        if (isset($data['error'])) {
-            return [];
-        }
-        
-        $tracks = [];
-        foreach ($data['items'] as $track) {
-            $tracks[] = [
-                'id' => $track['id'],
-                'name' => $track['name'],
-                'artist' => $track['artists'][0]['name'] ?? 'Unknown',
-                'cover' => $track['album']['images'][0]['url'] ?? '',
-                'playcount' => $track['popularity'] ?? 0, // Use popularity as proxy for playcount
-            ];
-        }
-        return $tracks;
-    }
-    
-    // For other players, we would need their tokens (not available in this implementation)
-    // Return empty for now
-    return [];
+const ROUND_DURATION = 20;
+
+function buildTrackPayload(array $track): array
+{
+    return [
+        'id' => $track['id'] ?? '',
+        'title' => $track['name'] ?? 'Unknown track',
+        'artist' => $track['artist'] ?? 'Unknown artist',
+        'cover' => $track['cover'] ?? '',
+        'preview_url' => $track['preview_url'] ?? '',
+        'playcount' => (int)($track['playcount'] ?? 0),
+    ];
 }
 
-/**
- * Load players with their top tracks from the current room
- */
-function loadPlayers() {
-    $roomCode = $_SESSION['current_room'] ?? null;
-    if (!$roomCode) {
-        return [];
-    }
-    
-    $roomData = getRoom($roomCode);
-    if (!$roomData || empty($roomData['players'])) {
-        return [];
-    }
-    
-    $players = [];
-    foreach ($roomData['players'] as $player) {
-        $tracks = getPlayerTopTracks($player['id']);
-        $players[] = [
+function normalizePlayerList(array $players): array
+{
+    return array_map(static function (array $player): array {
+        return [
             'id' => $player['id'],
             'name' => $player['name'],
-            'image' => $player['image'],
-            'tracks' => $tracks,
+            'image' => $player['image'] ?? null,
+        ];
+    }, $players);
+}
+
+function getPlayerTopTracks(string $userId, int $limit = 50, string $timeRange = 'medium_term'): array
+{
+    $url = "https://api.spotify.com/v1/me/top/tracks?limit={$limit}&time_range={$timeRange}";
+    $data = fetchSpotify($url, $userId);
+
+    if (isset($data['error']) || !is_array($data['items'] ?? null)) {
+        return [];
+    }
+
+    $tracks = [];
+    foreach ($data['items'] as $track) {
+        $tracks[] = [
+            'id' => $track['id'] ?? '',
+            'name' => $track['name'] ?? 'Unknown track',
+            'artist' => $track['artists'][0]['name'] ?? 'Unknown artist',
+            'cover' => $track['album']['images'][0]['url'] ?? '',
+            'preview_url' => $track['preview_url'] ?? '',
+            'playcount' => (int)($track['popularity'] ?? 0),
         ];
     }
-    
-    return $players;
+
+    return $tracks;
 }
 
-function getNextPlayer($players) {
-    if (!isset($_SESSION['current_player_index'])) {
-        $_SESSION['current_player_index'] = 0;
-    }
-    $player = $players[$_SESSION['current_player_index']];
-    $_SESSION['current_player_index'] = ($_SESSION['current_player_index'] + 1) % count($players);
-    return $player;
-}
+function loadPlayersWithTracks(array $players): array
+{
+    $playersWithTracks = [];
 
-function getRandomTrack($player) {
-    if (empty($player['tracks'])) {
-        return null;
-    }
-    
-    $available = array_filter($player['tracks'], function($track) {
-        return !in_array($track['id'], $_SESSION['used_tracks'] ?? []);
-    });
-    
-    if (empty($available)) {
-        return null;
-    }
-    
-    $random = $available[array_rand($available)];
-    $_SESSION['used_tracks'][] = $random['id'];
-    return $random;
-}
-
-function findTopListener($track, $players) {
-    $maxPlaycount = 0;
-    $topPlayer = null;
     foreach ($players as $player) {
-        foreach ($player['tracks'] as $t) {
-            if ($t['id'] === $track['id'] && $t['playcount'] > $maxPlaycount) {
-                $maxPlaycount = $t['playcount'];
-                $topPlayer = $player;
+        $playersWithTracks[] = [
+            'player' => $player,
+            'tracks' => getPlayerTopTracks($player['id']),
+        ];
+    }
+
+    return $playersWithTracks;
+}
+
+function chooseSourcePlayer(array $playersWithTracks, array $usedSourcePlayerIds): array
+{
+    $eligible = array_values(array_filter($playersWithTracks, static function (array $entry) use ($usedSourcePlayerIds): bool {
+        $playerId = $entry['player']['id'] ?? null;
+        return is_string($playerId) && !in_array($playerId, $usedSourcePlayerIds, true) && !empty($entry['tracks']);
+    }));
+
+    if (empty($eligible)) {
+        $eligible = array_values(array_filter($playersWithTracks, static function (array $entry): bool {
+            return !empty($entry['tracks']);
+        }));
+    }
+
+    if (empty($eligible)) {
+        return [];
+    }
+
+    shuffle($eligible);
+    return $eligible[0];
+}
+
+function selectRoundTrack(array $sourcePlayer, array $usedTrackIds): ?array
+{
+    $eligible = array_values(array_filter($sourcePlayer['tracks'], static function (array $track) use ($usedTrackIds): bool {
+        return !in_array($track['id'] ?? '', $usedTrackIds, true);
+    }));
+
+    if (!empty($eligible)) {
+        $random = $eligible[array_rand($eligible)];
+        return $random;
+    }
+
+    if (!empty($sourcePlayer['tracks'])) {
+        return $sourcePlayer['tracks'][array_rand($sourcePlayer['tracks'])];
+    }
+
+    return null;
+}
+
+function determineCorrectPlayer(string $sourcePlayerId, array $playersWithTracks, array $roundTrack): string
+{
+    $bestPlayerId = $sourcePlayerId;
+    $bestPlaycount = -1;
+
+    foreach ($playersWithTracks as $entry) {
+        $playerId = $entry['player']['id'] ?? null;
+        if (!is_string($playerId)) {
+            continue;
+        }
+
+        foreach ($entry['tracks'] as $track) {
+            if (($track['id'] ?? null) !== ($roundTrack['id'] ?? null)) {
+                continue;
+            }
+
+            $playcount = (int)($track['playcount'] ?? 0);
+            if ($playcount > $bestPlaycount || ($playcount === $bestPlaycount && $playerId === $sourcePlayerId)) {
+                $bestPlaycount = $playcount;
+                $bestPlayerId = $playerId;
             }
         }
     }
-    return $topPlayer;
+
+    return $bestPlayerId;
 }
 
-function handleGuess($guess) {
-    $correct = ($guess === $_SESSION['correct_player']['id']);
-    if ($correct) {
-        $_SESSION['scores'][$guess] = ($_SESSION['scores'][$guess] ?? 0) + 1;
+function getRoomContext(): ?array
+{
+    $roomCode = $_SESSION['current_room'] ?? null;
+    if (!is_string($roomCode) || $roomCode === '') {
+        return null;
     }
-    return $correct;
+
+    $room = getRoom($roomCode);
+    if (!$room) {
+        return null;
+    }
+
+    $userId = $_SESSION['spotify_user']['id'] ?? null;
+    if (!is_string($userId) || $userId === '' || !isUserInRoom($roomCode)) {
+        return null;
+    }
+
+    return [
+        'room' => $room,
+        'roomCode' => $roomCode,
+        'userId' => $userId,
+    ];
 }
 
-$action = $_REQUEST['action'] ?? 'state';
-$players = loadPlayers();
+function saveRoom(array $room): void
+{
+    $rooms = getAllRooms();
+    $rooms[$room['code'] ?? ''] = $room;
+    saveAllRooms($rooms);
+}
 
-switch ($action) {
-    case 'start':
-        $_SESSION['used_tracks'] = [];
-        $_SESSION['current_round'] = 0;
-        $_SESSION['scores'] = array_fill_keys(array_column($players, 'id'), 0);
-        $_SESSION['current_player_index'] = 0;
-        // Fall through to next_round
-    case 'next_round':
-        $sourcePlayer = getNextPlayer($players);
-        $track = getRandomTrack($sourcePlayer);
-        if (!$track) {
-            echo json_encode(['success' => false, 'message' => 'No more tracks available']);
+function persistRoomState(array $room, string $roomCode): void
+{
+    $rooms = getAllRooms();
+    $rooms[$roomCode] = $room;
+    saveAllRooms($rooms);
+}
+
+function finalizeRoundIfNeeded(array &$room): void
+{
+    $game = $room['game'] ?? [];
+    if (($game['status'] ?? 'idle') !== 'active') {
+        return;
+    }
+
+    $expiresAt = (int)($game['expires_at'] ?? 0);
+    if ($expiresAt > time()) {
+        return;
+    }
+
+    $game['status'] = 'revealed';
+    $game['revealed_at'] = time();
+
+    foreach ($room['players'] as $player) {
+        if (!isset($game['scores'][$player['id']])) {
+            $game['scores'][$player['id']] = 0;
+        }
+    }
+
+    $correctPlayerId = $game['correct_player_id'] ?? null;
+    foreach ($game['guesses'] as $playerId => $guess) {
+        if ($guess === $correctPlayerId && isset($game['scores'][$playerId])) {
+            $game['scores'][$playerId] = (int)$game['scores'][$playerId] + 1;
+        }
+    }
+
+    $room['game'] = $game;
+}
+
+function startNewRound(array $room): array
+{
+    $playersWithTracks = loadPlayersWithTracks($room['players']);
+    $sourceCandidate = chooseSourcePlayer($playersWithTracks, $room['game']['used_source_player_ids'] ?? []);
+
+    if (empty($sourceCandidate)) {
+        throw new RuntimeException('No player has enough Spotify data to start a round.');
+    }
+
+    $track = selectRoundTrack($sourceCandidate, $room['game']['used_track_ids'] ?? []);
+    if (!$track) {
+        throw new RuntimeException('No playable tracks are available for the selected player.');
+    }
+
+    $correctPlayerId = determineCorrectPlayer($sourceCandidate['player']['id'], $playersWithTracks, $track);
+    $game = $room['game'] ?? defaultGameState();
+
+    $game['status'] = 'active';
+    $game['round_number'] = ((int)($game['round_number'] ?? 0)) + 1;
+    $game['round_id'] = bin2hex(random_bytes(8));
+    $game['source_player_id'] = $sourceCandidate['player']['id'];
+    $game['correct_player_id'] = $correctPlayerId;
+    $game['track'] = buildTrackPayload($track);
+    $game['guesses'] = [];
+    $game['round_started_at'] = time();
+    $game['expires_at'] = time() + ROUND_DURATION;
+    $game['revealed_at'] = null;
+    $game['used_track_ids'] = array_values(array_unique(array_merge($game['used_track_ids'] ?? [], [$track['id']])));
+    $game['used_source_player_ids'] = array_values(array_unique(array_merge($game['used_source_player_ids'] ?? [], [$sourceCandidate['player']['id']])));
+
+    $room['game'] = $game;
+    return $room;
+}
+
+function buildGameResponse(array $room, string $userId): array
+{
+    $game = $room['game'] ?? defaultGameState();
+    $track = is_array($game['track'] ?? null) ? buildTrackPayload($game['track']) : null;
+
+    return [
+        'success' => true,
+        'round' => (int)($game['round_number'] ?? 0),
+        'status' => $game['status'] ?? 'idle',
+        'round_id' => $game['round_id'] ?? null,
+        'track' => $track,
+        'players' => normalizePlayerList($room['players'] ?? []),
+        'scores' => is_array($game['scores'] ?? null) ? $game['scores'] : [],
+        'my_guess' => $game['guesses'][$userId] ?? null,
+        'time_left' => $game['expires_at'] ? max(0, (int)$game['expires_at'] - time()) : 0,
+        'expires_at' => $game['expires_at'] ?? null,
+        'correct_player_id' => $game['correct_player_id'] ?? null,
+        'source_player_id' => $game['source_player_id'] ?? null,
+        'is_host' => ($room['host_id'] ?? null) === $userId,
+    ];
+}
+
+header('Content-Type: application/json');
+
+$context = getRoomContext();
+if (!$context) {
+    echo json_encode(['success' => false, 'message' => 'Room not found or not available.']);
+    exit;
+}
+
+$room = $context['room'];
+$roomCode = $context['roomCode'];
+$userId = $context['userId'];
+$action = $_REQUEST['action'] ?? 'state';
+
+if ($action === 'start' || $action === 'next_round') {
+    if ($room['host_id'] !== $userId) {
+        echo json_encode(['success' => false, 'message' => 'Only the host can control the round.']);
+        exit;
+    }
+
+    if (($room['game']['status'] ?? 'idle') !== 'active') {
+        try {
+            $room = startNewRound($room);
+            persistRoomState($room, $roomCode);
+        } catch (RuntimeException | InvalidArgumentException $exception) {
+            echo json_encode(['success' => false, 'message' => $exception->getMessage()]);
             exit;
         }
-        $correctPlayer = findTopListener($track, $players);
-        $_SESSION['current_round']++;
-        $_SESSION['current_track'] = $track;
-        $_SESSION['correct_player'] = $correctPlayer;
-        // Fall through to state
-    case 'state':
-        $response = [
-            'success' => true,
-            'round' => $_SESSION['current_round'] ?? 0,
-            'track' => $_SESSION['current_track'] ?? null,
-            'players' => array_map(function($p) { return ['id' => $p['id'], 'name' => $p['name']]; }, $players),
-            'scores' => $_SESSION['scores'] ?? []
-        ];
-        echo json_encode($response);
-        break;
-    case 'guess':
-        $guess = $_POST['guess'] ?? '';
-        $correct = handleGuess($guess);
-        $response = [
-            'success' => true,
-            'correct' => $correct,
-            'scores' => $_SESSION['scores'] ?? []
-        ];
-        echo json_encode($response);
-        break;
+    }
+
+    echo json_encode(buildGameResponse($room, $userId));
+    exit;
 }
+
+if ($action === 'state') {
+    finalizeRoundIfNeeded($room);
+    persistRoomState($room, $roomCode);
+
+    echo json_encode(buildGameResponse($room, $userId));
+    exit;
+}
+
+if ($action === 'guess') {
+    $guess = $_POST['guess'] ?? '';
+    $game = $room['game'] ?? defaultGameState();
+
+    if (($game['status'] ?? 'idle') !== 'active') {
+        echo json_encode(array_merge(buildGameResponse($room, $userId), [
+            'accepted' => false,
+            'duplicate' => false,
+            'correct' => false,
+            'message' => 'Round is not accepting guesses right now.',
+        ]));
+        exit;
+    }
+
+    $validPlayers = array_column($room['players'] ?? [], 'id');
+    if (!in_array($guess, $validPlayers, true)) {
+        echo json_encode(array_merge(buildGameResponse($room, $userId), [
+            'accepted' => false,
+            'duplicate' => false,
+            'correct' => false,
+            'message' => 'That player is not in the room.',
+        ]));
+        exit;
+    }
+
+    $duplicate = isset($game['guesses'][$userId]);
+    if (!$duplicate) {
+        $game['guesses'][$userId] = $guess;
+        if (count($game['guesses']) >= count($room['players'] ?? [])) {
+            $game['expires_at'] = time();
+        }
+    }
+
+    $room['game'] = $game;
+    finalizeRoundIfNeeded($room);
+    persistRoomState($room, $roomCode);
+
+    $response = buildGameResponse($room, $userId);
+    $response['accepted'] = true;
+    $response['duplicate'] = $duplicate;
+    $response['correct'] = ($game['guesses'][$userId] ?? null) === ($game['correct_player_id'] ?? null);
+    $response['message'] = $duplicate ? 'Your guess was already recorded.' : 'Guess recorded.';
+
+    echo json_encode($response);
+    exit;
+}
+
+echo json_encode(['success' => false, 'message' => 'Unknown action.']);
 ?>

@@ -46,16 +46,84 @@ function exchangeCodeForToken(string $code, string $code_verifier): array
     return $data ?: ['error' => 'invalid_response'];
 }
 
-function fetchSpotify(string $url): array
+function refreshSpotifyToken(string $refreshToken): array
 {
-    if (empty($_SESSION['access_token'])) {
+    $post = http_build_query([
+        'client_id' => SPOTIFY_CLIENT_ID,
+        'grant_type' => 'refresh_token',
+        'refresh_token' => $refreshToken,
+    ]);
+
+    $ch = curl_init('https://accounts.spotify.com/api/token');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+    $resp = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($resp === false) {
+        return ['error' => $err ?: 'curl_error'];
+    }
+
+    $data = json_decode($resp, true);
+    if (!is_array($data)) {
+        return ['error' => 'invalid_response'];
+    }
+
+    return $data;
+}
+
+function getSpotifyAccessToken(?string $userId = null): ?string
+{
+    if ($userId === null) {
+        return $_SESSION['access_token'] ?? null;
+    }
+
+    $account = getStoredSpotifyUserAccount($userId);
+    if (!$account) {
+        return null;
+    }
+
+    $token = $account['access_token'] ?? null;
+    $expiresAt = (int)($account['expires_at'] ?? 0);
+    if (!empty($token) && ($expiresAt === 0 || $expiresAt > time())) {
+        return $token;
+    }
+
+    $refreshToken = $account['refresh_token'] ?? null;
+    if (empty($refreshToken)) {
+        return null;
+    }
+
+    $refreshed = refreshSpotifyToken($refreshToken);
+    if (isset($refreshed['error']) || empty($refreshed['access_token'])) {
+        return null;
+    }
+
+    saveSpotifyUserAccount(
+        $userId,
+        $account['profile'] ?? [],
+        $refreshed['access_token'],
+        $refreshToken,
+        time() + (int)($refreshed['expires_in'] ?? 3600)
+    );
+
+    return $refreshed['access_token'];
+}
+
+function fetchSpotify(string $url, ?string $userId = null): array
+{
+    $token = getSpotifyAccessToken($userId);
+    if (empty($token)) {
         return ['error' => 'no_access_token'];
     }
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $_SESSION['access_token'],
+        'Authorization: Bearer ' . $token,
         'Accept: application/json',
     ]);
     $resp = curl_exec($ch);
@@ -77,6 +145,11 @@ function fetchSpotify(string $url): array
 
 function logout(): void
 {
+    $userId = $_SESSION['spotify_user']['id'] ?? null;
+    if ($userId) {
+        removeStoredSpotifyUserAccount($userId);
+    }
+
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
