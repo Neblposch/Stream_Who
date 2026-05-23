@@ -11,6 +11,7 @@ $currentUserId = $spotifyUser['id'] ?? 'unknown';
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
 $roomData = null;
 $roomError = '';
+$isHost = false;
 
 if ($roomCode === '') {
     $roomError = 'Room code missing.';
@@ -22,6 +23,7 @@ if ($roomCode === '') {
         $roomError = 'You are not a member of this room.';
     } else {
         $_SESSION['current_room'] = $roomCode;
+        $isHost = ($roomData['host_id'] ?? '') === $currentUserId;
     }
 }
 ?>
@@ -70,6 +72,9 @@ if ($roomCode === '') {
                     <div id="timer" class="timer"></div>
                     <div id="scores" class="scores"></div>
                 </div>
+                <div id="roleBadge" class="role-badge">
+                    <?= $isHost ? 'Host view' : 'Player view' ?>
+                </div>
                 <div id="controls" class="controls">
                     <button id="startBtn" class="button control">Start Game</button>
                     <button id="nextBtn" class="button control">Next Round</button>
@@ -82,10 +87,10 @@ if ($roomCode === '') {
             let gameState = {
                 players: [],
                 scores: {},
-                status: 'idle',
+                status: 'loading',
                 track: null,
                 my_guess: null,
-                is_host: false,
+                is_host: <?= $isHost ? 'true' : 'false' ?>,
             };
             let currentAudio = null;
             let currentTrackId = null;
@@ -170,7 +175,6 @@ if ($roomCode === '') {
                 render();
             }
 
-            // Updated render() in `game.php`
             function render() {
                 const cover = gameState.track?.cover || '';
                 document.body.style.backgroundImage = cover ? `url(${cover})` : 'none';
@@ -185,8 +189,6 @@ if ($roomCode === '') {
                     stopPreview();
                 }
 
-
-
                 const playersDiv = document.getElementById('players');
                 playersDiv.innerHTML = '';
                 (gameState.players || []).forEach(player => {
@@ -198,7 +200,7 @@ if ($roomCode === '') {
                 });
 
                 document.getElementById('round').textContent = `Round: ${gameState.round ?? 0}`;
-                document.getElementById('timer').textContent = `Time left: ${gameState.time_left ?? 0}s`;
+                document.getElementById('timer').textContent = gameState.status === 'active' ? `Time left: ${gameState.time_left ?? 0}s` : 'Time left: 0s';
 
                 const scoresDiv = document.getElementById('scores');
                 scoresDiv.textContent = 'Scores: ';
@@ -209,17 +211,22 @@ if ($roomCode === '') {
                     }
                 });
 
-                const canGuess = gameState.status === 'active' && !gameState.my_guess;
+                const canGuess = gameState.status === 'active' && !gameState.my_guess && gameState.can_guess !== false;
                 document.querySelectorAll('.player-btn').forEach(btn => {
                     btn.disabled = !canGuess;
                 });
 
+                const controls = document.getElementById('controls');
                 const startBtn = document.getElementById('startBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                startBtn.disabled = !gameState.is_host || gameState.status === 'active';
+                controls.style.display = gameState.is_host ? 'flex' : 'none';
+                startBtn.disabled = !gameState.is_host || gameState.status === 'active' || gameState.status === 'starting';
                 nextBtn.disabled = !gameState.is_host || gameState.status !== 'revealed';
 
-                if (gameState.status === 'active') {
+                if (gameState.status === 'starting') {
+                    document.getElementById('feedback').textContent = 'Starting the next round...';
+                    document.getElementById('feedback').style.color = '';
+                } else if (gameState.status === 'active') {
                     document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted.' : 'Guess the player who listened to this track the most.';
                     document.getElementById('feedback').style.color = '';
                 } else if (gameState.status === 'revealed') {
@@ -241,8 +248,9 @@ if ($roomCode === '') {
             document.getElementById('startBtn').onclick = startGame;
             document.getElementById('nextBtn').onclick = nextRound;
 
+            render();
             fetchState();
-            setInterval(fetchState, 3000);
+            setInterval(fetchState, 1500);
         </script>
     <?php endif; ?>
 </body>
