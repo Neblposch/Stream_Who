@@ -71,7 +71,7 @@ if ($roomCode === '') {
                     <div id="scores" class="scores"></div>
                 </div>
                 <div id="controls" class="controls">
-                    <button id="startBtn" class="button control">Start Game</button>
+                    <button id="startBtn" class="button control" style="display:none;">Start Game</button>
                     <button id="nextBtn" class="button control">Next Round</button>
                 </div>
                 <div id="feedback" class="feedback"></div>
@@ -216,6 +216,7 @@ if ($roomCode === '') {
 
                 const startBtn = document.getElementById('startBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                startBtn.style.display = gameState.is_host ? 'inline-block' : 'none';
                 startBtn.disabled = !gameState.is_host || gameState.status === 'active';
                 nextBtn.disabled = !gameState.is_host || gameState.status !== 'revealed';
 
