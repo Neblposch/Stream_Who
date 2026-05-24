@@ -31,45 +31,6 @@ function getRoomsFilePath(): string
     return __DIR__ . '/rooms.json';
 }
 
-function getRoomsLockPath(): string
-{
-    return __DIR__ . '/rooms.lock';
-}
-
-function acquireRoomsLock(): resource
-{
-    $handle = fopen(getRoomsLockPath(), 'c+');
-    if ($handle === false) {
-        throw new RuntimeException('Unable to open rooms lock file.');
-    }
-
-    if (!flock($handle, LOCK_EX)) {
-        fclose($handle);
-        throw new RuntimeException('Unable to acquire rooms lock.');
-    }
-
-    return $handle;
-}
-
-function releaseRoomsLock(mixed $handle): void
-{
-    if (is_resource($handle)) {
-        flock($handle, LOCK_UN);
-        fclose($handle);
-    }
-}
-
-function withRoomsLock(callable $callback): mixed
-{
-    $lock = acquireRoomsLock();
-
-    try {
-        return $callback();
-    } finally {
-        releaseRoomsLock($lock);
-    }
-}
-
 function normalizePlayerData(mixed $player): array
 {
     if (is_array($player)) {
@@ -100,7 +61,6 @@ function defaultGameState(): array
         'scores' => [],
         'used_track_ids' => [],
         'used_source_player_ids' => [],
-        'round_participants' => [],
         'round_started_at' => null,
         'expires_at' => null,
         'revealed_at' => null,
@@ -115,12 +75,6 @@ function normalizeRoomData(array $room): array
     }
 
     $hostId = (string)($room['host_id'] ?? $room['host'] ?? ($players[0]['id'] ?? 'unknown'));
-    if ($hostId === '' && !empty($players)) {
-        $hostId = $players[0]['id'];
-    }
-    if (!empty($players) && !in_array($hostId, array_column($players, 'id'), true)) {
-        $hostId = $players[0]['id'];
-    }
 
     $game = is_array($room['game'] ?? null) ? $room['game'] : [];
     $game = array_replace(defaultGameState(), $game);
@@ -141,10 +95,6 @@ function normalizeRoomData(array $room): array
         $game['used_source_player_ids'] = [];
     }
 
-    if (!is_array($game['round_participants'] ?? null)) {
-        $game['round_participants'] = [];
-    }
-
     foreach ($players as $player) {
         if (!array_key_exists($player['id'], $game['scores'])) {
             $game['scores'][$player['id']] = 0;
@@ -153,7 +103,6 @@ function normalizeRoomData(array $room): array
 
     $game['used_track_ids'] = array_values(array_unique(array_filter(array_map('strval', $game['used_track_ids']), static fn($value) => $value !== '')));
     $game['used_source_player_ids'] = array_values(array_unique(array_filter(array_map('strval', $game['used_source_player_ids']), static fn($value) => $value !== '')));
-    $game['round_participants'] = array_values(array_unique(array_filter(array_map('strval', $game['round_participants']), static fn($value) => $value !== '')));
 
     return array_merge($room, [
         'host_id' => $hostId,
@@ -249,25 +198,6 @@ function saveAllRooms(array $rooms): void
     }
 }
 
-function saveRoom(array $room): void
-{
-    $roomCode = (string)($room['code'] ?? $room['host_id'] ?? '');
-    if ($roomCode === '') {
-        throw new InvalidArgumentException('Room code is required to save a room.');
-    }
-
-    $rooms = getAllRooms();
-    $rooms[$roomCode] = normalizeRoomData($room);
-    saveAllRooms($rooms);
-}
-
-function persistRoomState(array $room, string $roomCode): void
-{
-    $rooms = getAllRooms();
-    $rooms[$roomCode] = normalizeRoomData($room);
-    saveAllRooms($rooms);
-}
-
 function getSpotifyAccountsFilePath(): string
 {
     return __DIR__ . '/data/spotify_accounts.json';
@@ -346,35 +276,33 @@ function createRoom(): string
         throw new RuntimeException('Spotify authentication required.');
     }
 
-    return withRoomsLock(static function () {
-        $rooms = getAllRooms();
+    $rooms = getAllRooms();
+    $roomCode = generateRoomCode();
+
+    while (isset($rooms[$roomCode])) {
         $roomCode = generateRoomCode();
+    }
 
-        while (isset($rooms[$roomCode])) {
-            $roomCode = generateRoomCode();
-        }
+    $spotifyUser = $_SESSION['spotify_user'] ?? [];
+    $userId = $spotifyUser['id'] ?? 'unknown';
+    $userName = $spotifyUser['display_name'] ?? 'Unknown Player';
+    $userImage = $spotifyUser['images'][0]['url'] ?? null;
 
-        $spotifyUser = $_SESSION['spotify_user'] ?? [];
-        $userId = $spotifyUser['id'] ?? 'unknown';
-        $userName = $spotifyUser['display_name'] ?? 'Unknown Player';
-        $userImage = $spotifyUser['images'][0]['url'] ?? null;
+    $rooms[$roomCode] = [
+        'host_id' => $userId,
+        'players' => [
+            [
+                'id' => $userId,
+                'name' => $userName,
+                'image' => $userImage,
+            ]
+        ],
+        'created_at' => time(),
+        'game' => defaultGameState(),
+    ];
 
-        $rooms[$roomCode] = normalizeRoomData([
-            'host_id' => $userId,
-            'players' => [
-                [
-                    'id' => $userId,
-                    'name' => $userName,
-                    'image' => $userImage,
-                ]
-            ],
-            'created_at' => time(),
-            'game' => defaultGameState(),
-        ]);
-
-        saveAllRooms($rooms);
-        return $roomCode;
-    });
+    saveAllRooms($rooms);
+    return $roomCode;
 }
 
 function joinRoom(string $roomCode): bool
@@ -384,35 +312,32 @@ function joinRoom(string $roomCode): bool
     }
 
     $roomCode = normalizeRoomCode($roomCode);
+    $rooms = getAllRooms();
 
-    return withRoomsLock(static function () use ($roomCode) {
-        $rooms = getAllRooms();
+    if (!isset($rooms[$roomCode])) {
+        throw new InvalidArgumentException('Room not found.');
+    }
 
-        if (!isset($rooms[$roomCode])) {
-            throw new InvalidArgumentException('Room not found.');
+    $spotifyUser = $_SESSION['spotify_user'] ?? [];
+    $userId = $spotifyUser['id'] ?? 'unknown';
+    $userName = $spotifyUser['display_name'] ?? 'Unknown Player';
+    $userImage = $spotifyUser['images'][0]['url'] ?? null;
+
+    foreach ($rooms[$roomCode]['players'] as $player) {
+        if (($player['id'] ?? null) === $userId) {
+            return true;
         }
+    }
 
-        $spotifyUser = $_SESSION['spotify_user'] ?? [];
-        $userId = $spotifyUser['id'] ?? 'unknown';
-        $userName = $spotifyUser['display_name'] ?? 'Unknown Player';
-        $userImage = $spotifyUser['images'][0]['url'] ?? null;
+    $rooms[$roomCode]['players'][] = [
+        'id' => $userId,
+        'name' => $userName,
+        'image' => $userImage,
+    ];
 
-        foreach ($rooms[$roomCode]['players'] as $player) {
-            if (($player['id'] ?? null) === $userId) {
-                return true;
-            }
-        }
-
-        $rooms[$roomCode]['players'][] = [
-            'id' => $userId,
-            'name' => $userName,
-            'image' => $userImage,
-        ];
-
-        $rooms[$roomCode] = normalizeRoomData($rooms[$roomCode]);
-        saveAllRooms($rooms);
-        return true;
-    });
+    $rooms[$roomCode] = normalizeRoomData($rooms[$roomCode]);
+    saveAllRooms($rooms);
+    return true;
 }
 
 function getRoom(string $roomCode): ?array

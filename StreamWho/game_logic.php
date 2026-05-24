@@ -67,27 +67,16 @@ function loadPlayersWithTracks(array $players): array
     return $playersWithTracks;
 }
 
-function chooseSourcePlayer(array $playersWithTracks, array $usedSourcePlayerIds, array $usedTrackIds): array
+function chooseSourcePlayer(array $playersWithTracks, array $usedSourcePlayerIds): array
 {
-    $eligible = array_values(array_filter($playersWithTracks, static function (array $entry) use ($usedSourcePlayerIds, $usedTrackIds): bool {
+    $eligible = array_values(array_filter($playersWithTracks, static function (array $entry) use ($usedSourcePlayerIds): bool {
         $playerId = $entry['player']['id'] ?? null;
-        if (!is_string($playerId) || in_array($playerId, $usedSourcePlayerIds, true)) {
-            return false;
-        }
-
-        foreach ($entry['tracks'] as $track) {
-            if (!in_array($track['id'] ?? '', $usedTrackIds, true)) {
-                return true;
-            }
-        }
-
-        return false;
+        return is_string($playerId) && !in_array($playerId, $usedSourcePlayerIds, true) && !empty($entry['tracks']);
     }));
 
     if (empty($eligible)) {
-        $eligible = array_values(array_filter($playersWithTracks, static function (array $entry) use ($usedSourcePlayerIds): bool {
-            $playerId = $entry['player']['id'] ?? null;
-            return is_string($playerId) && !in_array($playerId, $usedSourcePlayerIds, true) && !empty($entry['tracks']);
+        $eligible = array_values(array_filter($playersWithTracks, static function (array $entry): bool {
+            return !empty($entry['tracks']);
         }));
     }
 
@@ -106,7 +95,8 @@ function selectRoundTrack(array $sourcePlayer, array $usedTrackIds): ?array
     }));
 
     if (!empty($eligible)) {
-        return $eligible[array_rand($eligible)];
+        $random = $eligible[array_rand($eligible)];
+        return $random;
     }
 
     if (!empty($sourcePlayer['tracks'])) {
@@ -143,26 +133,6 @@ function determineCorrectPlayer(string $sourcePlayerId, array $playersWithTracks
     return $bestPlayerId;
 }
 
-function getRoundParticipantIds(array $game): array
-{
-    $participants = $game['round_participants'] ?? [];
-    if (!is_array($participants)) {
-        return [];
-    }
-
-    return array_values(array_unique(array_filter(array_map('strval', $participants), static fn($value) => $value !== '')));
-}
-
-function setRoundParticipants(array &$game, array $players): void
-{
-    $participantIds = [];
-    foreach ($players as $player) {
-        $participantIds[] = (string)($player['id'] ?? '');
-    }
-
-    $game['round_participants'] = array_values(array_unique(array_filter($participantIds, static fn($value) => $value !== '')));
-}
-
 function getRoomContext(): ?array
 {
     $roomCode = $_SESSION['current_room'] ?? null;
@@ -187,20 +157,30 @@ function getRoomContext(): ?array
     ];
 }
 
-function finalizeRoundIfNeeded(array &$room): bool
+function saveRoom(array $room): void
 {
-    $game = $room['game'] ?? defaultGameState();
+    $rooms = getAllRooms();
+    $rooms[$room['code'] ?? ''] = $room;
+    saveAllRooms($rooms);
+}
+
+function persistRoomState(array $room, string $roomCode): void
+{
+    $rooms = getAllRooms();
+    $rooms[$roomCode] = $room;
+    saveAllRooms($rooms);
+}
+
+function finalizeRoundIfNeeded(array &$room): void
+{
+    $game = $room['game'] ?? [];
     if (($game['status'] ?? 'idle') !== 'active') {
-        return false;
+        return;
     }
 
-    $participantIds = getRoundParticipantIds($game);
-    $requiredGuesses = count($participantIds) > 0 ? count($participantIds) : count($room['players'] ?? []);
-    $allGuessed = count($game['guesses']) >= $requiredGuesses;
-    $expired = (int)($game['expires_at'] ?? 0) <= time();
-
-    if (!$expired && !$allGuessed) {
-        return false;
+    $expiresAt = (int)($game['expires_at'] ?? 0);
+    if ($expiresAt > time()) {
+        return;
     }
 
     $game['status'] = 'revealed';
@@ -220,28 +200,12 @@ function finalizeRoundIfNeeded(array &$room): bool
     }
 
     $room['game'] = $game;
-    return true;
 }
 
 function startNewRound(array $room): array
 {
-    $room['game'] = array_replace(defaultGameState(), $room['game'] ?? []);
-    $room['game']['status'] = 'starting';
-    $room['game']['round_id'] = bin2hex(random_bytes(8));
-    $room['game']['round_started_at'] = time();
-    $room['game']['expires_at'] = null;
-    $room['game']['revealed_at'] = null;
-    $room['game']['guesses'] = [];
-    $room['game']['track'] = null;
-    $room['game']['source_player_id'] = null;
-    $room['game']['correct_player_id'] = null;
-
     $playersWithTracks = loadPlayersWithTracks($room['players']);
-    $sourceCandidate = chooseSourcePlayer(
-        $playersWithTracks,
-        $room['game']['used_source_player_ids'] ?? [],
-        $room['game']['used_track_ids'] ?? []
-    );
+    $sourceCandidate = chooseSourcePlayer($playersWithTracks, $room['game']['used_source_player_ids'] ?? []);
 
     if (empty($sourceCandidate)) {
         throw new RuntimeException('No player has enough Spotify data to start a round.');
@@ -253,18 +217,19 @@ function startNewRound(array $room): array
     }
 
     $correctPlayerId = determineCorrectPlayer($sourceCandidate['player']['id'], $playersWithTracks, $track);
-    $game = $room['game'];
+    $game = $room['game'] ?? defaultGameState();
 
-    setRoundParticipants($game, $room['players']);
     $game['status'] = 'active';
     $game['round_number'] = ((int)($game['round_number'] ?? 0)) + 1;
+    $game['round_id'] = bin2hex(random_bytes(8));
     $game['source_player_id'] = $sourceCandidate['player']['id'];
     $game['correct_player_id'] = $correctPlayerId;
     $game['track'] = buildTrackPayload($track);
+    $game['guesses'] = [];
     $game['round_started_at'] = time();
     $game['expires_at'] = time() + ROUND_DURATION;
     $game['revealed_at'] = null;
-    $game['used_track_ids'] = array_values(array_unique(array_merge($game['used_track_ids'] ?? [], [$track['id'] ?? ''])));
+    $game['used_track_ids'] = array_values(array_unique(array_merge($game['used_track_ids'] ?? [], [$track['id']])));
     $game['used_source_player_ids'] = array_values(array_unique(array_merge($game['used_source_player_ids'] ?? [], [$sourceCandidate['player']['id']])));
 
     $room['game'] = $game;
@@ -275,8 +240,6 @@ function buildGameResponse(array $room, string $userId): array
 {
     $game = $room['game'] ?? defaultGameState();
     $track = is_array($game['track'] ?? null) ? buildTrackPayload($game['track']) : null;
-    $participantIds = getRoundParticipantIds($game);
-    $canGuess = empty($participantIds) || in_array($userId, $participantIds, true);
 
     return [
         'success' => true,
@@ -292,7 +255,6 @@ function buildGameResponse(array $room, string $userId): array
         'correct_player_id' => $game['correct_player_id'] ?? null,
         'source_player_id' => $game['source_player_id'] ?? null,
         'is_host' => ($room['host_id'] ?? null) === $userId,
-        'can_guess' => $canGuess,
     ];
 }
 
@@ -304,115 +266,81 @@ if (!$context) {
     exit;
 }
 
+$room = $context['room'];
 $roomCode = $context['roomCode'];
 $userId = $context['userId'];
 $action = $_REQUEST['action'] ?? 'state';
 
 if ($action === 'start' || $action === 'next_round') {
-    $response = withRoomsLock(static function () use ($roomCode, $userId) {
-        $room = getRoom($roomCode);
-        if (!$room) {
-            return ['success' => false, 'message' => 'Room not found or not available.'];
-        }
+    if ($room['host_id'] !== $userId) {
+        echo json_encode(['success' => false, 'message' => 'Only the host can control the round.']);
+        exit;
+    }
 
-        if (($room['host_id'] ?? null) !== $userId) {
-            return ['success' => false, 'message' => 'Only the host can control the round.'];
-        }
-
-        $gameStatus = $room['game']['status'] ?? 'idle';
-        if ($gameStatus === 'active' || $gameStatus === 'starting') {
-            return buildGameResponse($room, $userId);
-        }
-
+    if (($room['game']['status'] ?? 'idle') !== 'active') {
         try {
             $room = startNewRound($room);
             persistRoomState($room, $roomCode);
-            return buildGameResponse($room, $userId);
         } catch (RuntimeException | InvalidArgumentException $exception) {
-            return ['success' => false, 'message' => $exception->getMessage()];
+            echo json_encode(['success' => false, 'message' => $exception->getMessage()]);
+            exit;
         }
-    });
+    }
 
-    echo json_encode($response);
+    echo json_encode(buildGameResponse($room, $userId));
     exit;
 }
 
 if ($action === 'state') {
-    $response = withRoomsLock(static function () use ($roomCode, $userId) {
-        $room = getRoom($roomCode);
-        if (!$room) {
-            return ['success' => false, 'message' => 'Room not found or not available.'];
-        }
+    finalizeRoundIfNeeded($room);
+    persistRoomState($room, $roomCode);
 
-        finalizeRoundIfNeeded($room);
-        persistRoomState($room, $roomCode);
-
-        return buildGameResponse($room, $userId);
-    });
-
-    echo json_encode($response);
+    echo json_encode(buildGameResponse($room, $userId));
     exit;
 }
 
 if ($action === 'guess') {
     $guess = $_POST['guess'] ?? '';
-    $response = withRoomsLock(static function () use ($roomCode, $userId, $guess) {
-        $room = getRoom($roomCode);
-        if (!$room) {
-            return ['success' => false, 'message' => 'Room not found or not available.'];
+    $game = $room['game'] ?? defaultGameState();
+
+    if (($game['status'] ?? 'idle') !== 'active') {
+        echo json_encode(array_merge(buildGameResponse($room, $userId), [
+            'accepted' => false,
+            'duplicate' => false,
+            'correct' => false,
+            'message' => 'Round is not accepting guesses right now.',
+        ]));
+        exit;
+    }
+
+    $validPlayers = array_column($room['players'] ?? [], 'id');
+    if (!in_array($guess, $validPlayers, true)) {
+        echo json_encode(array_merge(buildGameResponse($room, $userId), [
+            'accepted' => false,
+            'duplicate' => false,
+            'correct' => false,
+            'message' => 'That player is not in the room.',
+        ]));
+        exit;
+    }
+
+    $duplicate = isset($game['guesses'][$userId]);
+    if (!$duplicate) {
+        $game['guesses'][$userId] = $guess;
+        if (count($game['guesses']) >= count($room['players'] ?? [])) {
+            $game['expires_at'] = time();
         }
+    }
 
-        $game = $room['game'] ?? defaultGameState();
-        if (($game['status'] ?? 'idle') !== 'active') {
-            return array_merge(buildGameResponse($room, $userId), [
-                'accepted' => false,
-                'duplicate' => false,
-                'correct' => false,
-                'message' => 'Round is not accepting guesses right now.',
-            ]);
-        }
+    $room['game'] = $game;
+    finalizeRoundIfNeeded($room);
+    persistRoomState($room, $roomCode);
 
-        $participantIds = getRoundParticipantIds($game);
-        $eligiblePlayerIds = empty($participantIds) ? array_column($room['players'] ?? [], 'id') : $participantIds;
-
-        if (!in_array($userId, $eligiblePlayerIds, true)) {
-            return array_merge(buildGameResponse($room, $userId), [
-                'accepted' => false,
-                'duplicate' => false,
-                'correct' => false,
-                'message' => 'You joined after this round started and cannot guess in the current round.',
-            ]);
-        }
-
-        if (!in_array($guess, $eligiblePlayerIds, true)) {
-            return array_merge(buildGameResponse($room, $userId), [
-                'accepted' => false,
-                'duplicate' => false,
-                'correct' => false,
-                'message' => 'That player is not in the current round.',
-            ]);
-        }
-
-        $duplicate = isset($game['guesses'][$userId]);
-        if (!$duplicate) {
-            $game['guesses'][$userId] = $guess;
-            if (count($game['guesses']) >= count($eligiblePlayerIds)) {
-                $game['expires_at'] = time();
-            }
-        }
-
-        $room['game'] = $game;
-        finalizeRoundIfNeeded($room);
-        persistRoomState($room, $roomCode);
-
-        $response = buildGameResponse($room, $userId);
-        $response['accepted'] = true;
-        $response['duplicate'] = $duplicate;
-        $response['correct'] = ($game['guesses'][$userId] ?? null) === ($game['correct_player_id'] ?? null);
-        $response['message'] = $duplicate ? 'Your guess was already recorded.' : 'Guess recorded.';
-
-        return $response;
-    });
+    $response = buildGameResponse($room, $userId);
+    $response['accepted'] = true;
+    $response['duplicate'] = $duplicate;
+    $response['correct'] = ($game['guesses'][$userId] ?? null) === ($game['correct_player_id'] ?? null);
+    $response['message'] = $duplicate ? 'Your guess was already recorded.' : 'Guess recorded.';
 
     echo json_encode($response);
     exit;
