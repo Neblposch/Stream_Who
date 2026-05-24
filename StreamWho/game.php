@@ -95,40 +95,6 @@ if ($roomCode === '') {
             let currentAudio = null;
             let currentTrackId = null;
 
-            async function parseApiResponse(response) {
-                const text = await response.text();
-
-                if (!text) {
-                    throw new Error('Empty response from server.');
-                }
-
-                try {
-                    const data = JSON.parse(text);
-
-                    if (!response.ok) {
-                        throw new Error(data?.message || text);
-                    }
-
-                    return data;
-                } catch (error) {
-                    if (error instanceof SyntaxError) {
-                        if (!response.ok) {
-                            throw new Error(text);
-                        }
-
-                        throw new Error('Invalid JSON response from server.');
-                    }
-
-                    throw error;
-                }
-            }
-
-            function showStatus(message) {
-                const feedback = document.getElementById('feedback');
-                feedback.textContent = message;
-                feedback.style.color = '';
-            }
-
             function stopPreview() {
                 if (currentAudio) {
                     currentAudio.pause();
@@ -157,18 +123,13 @@ if ($roomCode === '') {
             async function fetchState() {
                 try {
                     const response = await fetch('game_logic.php?action=state');
-                    const data = await parseApiResponse(response);
-
+                    const data = await response.json();
                     if (data && data.success !== false) {
                         gameState = { ...gameState, ...data };
-                    } else if (data && data.message) {
-                        showStatus(data.message);
                     }
-
                     render();
                 } catch (error) {
                     console.error('Unable to refresh game state', error);
-                    showStatus('Unable to refresh game state. Please reload the page.');
                 }
             }
 
@@ -177,21 +138,12 @@ if ($roomCode === '') {
                     return;
                 }
 
-                try {
-                    const response = await fetch('game_logic.php?action=start', { method: 'POST' });
-                    const data = await parseApiResponse(response);
-
-                    if (data && data.success !== false) {
-                        gameState = { ...gameState, ...data };
-                    } else if (data && data.message) {
-                        showStatus(data.message);
-                    }
-
-                    render();
-                } catch (error) {
-                    console.error('Unable to start game', error);
-                    showStatus('Unable to start the game right now.');
+                const response = await fetch('game_logic.php?action=start', { method: 'POST' });
+                const data = await response.json();
+                if (data && data.success !== false) {
+                    gameState = { ...gameState, ...data };
                 }
+                render();
             }
 
             async function nextRound() {
@@ -199,21 +151,12 @@ if ($roomCode === '') {
                     return;
                 }
 
-                try {
-                    const response = await fetch('game_logic.php?action=next_round', { method: 'POST' });
-                    const data = await parseApiResponse(response);
-
-                    if (data && data.success !== false) {
-                        gameState = { ...gameState, ...data };
-                    } else if (data && data.message) {
-                        showStatus(data.message);
-                    }
-
-                    render();
-                } catch (error) {
-                    console.error('Unable to start next round', error);
-                    showStatus('Unable to start the next round right now.');
+                const response = await fetch('game_logic.php?action=next_round', { method: 'POST' });
+                const data = await response.json();
+                if (data && data.success !== false) {
+                    gameState = { ...gameState, ...data };
                 }
+                render();
             }
 
             async function submitGuess(playerId) {
@@ -221,24 +164,15 @@ if ($roomCode === '') {
                     return;
                 }
 
-                try {
-                    const formData = new FormData();
-                    formData.append('guess', playerId);
-                    const response = await fetch('game_logic.php?action=guess', { method: 'POST', body: formData });
-                    const data = await parseApiResponse(response);
-
-                    if (data && data.success !== false) {
-                        gameState = { ...gameState, ...data };
-                        showFeedback(data.correct);
-                    } else if (data && data.message) {
-                        showStatus(data.message);
-                    }
-
-                    render();
-                } catch (error) {
-                    console.error('Unable to submit guess', error);
-                    showStatus('Unable to submit your guess right now.');
+                const formData = new FormData();
+                formData.append('guess', playerId);
+                const response = await fetch('game_logic.php?action=guess', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (data && data.success !== false) {
+                    gameState = { ...gameState, ...data };
+                    showFeedback(data.correct);
                 }
+                render();
             }
 
             function render() {
