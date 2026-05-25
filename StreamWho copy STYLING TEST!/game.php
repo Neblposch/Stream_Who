@@ -1,13 +1,8 @@
 <?php
-
 require_once __DIR__ . '/functions.php';
-require_once __DIR__ . '/spotify_helper.php';
-
 startSession();
 requireLogin();
 
-$spotifyUser = $_SESSION['spotify_user'] ?? [];
-$currentUserId = $spotifyUser['id'] ?? 'unknown';
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
 $roomData = null;
 $roomError = '';
@@ -29,18 +24,12 @@ if ($roomCode === '') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamWho - Game</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .room-info {
             transition: all 0.3s ease;
-            background: transparent !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 2vh 2vw;
         }
         .room-info.hide-players .player-list-container {
             display: none;
@@ -55,8 +44,7 @@ if ($roomCode === '') {
             top: 10px;
             z-index: 100;
             background: rgba(18, 32, 53, 0.95) !important;
-            backdrop-filter: blur(5px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            backdrop-filter: blur(5px);
         }
         .room-code-large {
             font-size: 2.5vh;
@@ -87,16 +75,6 @@ if ($roomCode === '') {
             margin: 0 auto;
             max-width: 90vw;
         }
-        .overlay {
-            background: transparent;
-        }
-        body.background {
-            background-size: cover !important;
-            background-position: center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-            transition: background-image 0.3s ease;
-        }
     </style>
 </head>
 <body id="gameBody" class="background">
@@ -107,7 +85,7 @@ if ($roomCode === '') {
             <a href="lobby.php">Back to Lobby</a>
         </div>
     <?php else: ?>
-        <div class="room-info" id="roomInfo">
+        <div class="container room-info" id="roomInfo">
             <div class="room-header">
                 <h2>Room: <span id="roomCodeDisplay"><?= htmlspecialchars($roomCode) ?></span></h2>
                 <div class="room-code-large" id="roomCodeLarge" style="display: none;"><?= htmlspecialchars($roomCode) ?></div>
@@ -130,7 +108,7 @@ if ($roomCode === '') {
             </div>
         </div>
 
-        <div id="gameCard" class="card">
+        <div id="gameCard">
             <img id="trackCover" class="cover" src="test.jpg" alt="Track Cover">
             <div id="trackTitle" class="title"></div>
             <div id="trackArtist" class="artist"></div>
@@ -175,11 +153,9 @@ if ($roomCode === '') {
                     stopPreview();
                     return;
                 }
-
                 if (currentTrackId === track.id && currentAudio && !currentAudio.paused) {
                     return;
                 }
-
                 stopPreview();
                 currentTrackId = track.id;
                 currentAudio = new Audio(track.preview_url);
@@ -201,10 +177,7 @@ if ($roomCode === '') {
             }
 
             async function startGame() {
-                if (!gameState.is_host) {
-                    return;
-                }
-
+                if (!gameState.is_host) return;
                 const response = await fetch('game_logic.php?action=start', { method: 'POST' });
                 const data = await response.json();
                 if (data && data.success !== false) {
@@ -214,10 +187,7 @@ if ($roomCode === '') {
             }
 
             async function nextRound() {
-                if (!gameState.is_host) {
-                    return;
-                }
-
+                if (!gameState.is_host) return;
                 const response = await fetch('game_logic.php?action=next_round', { method: 'POST' });
                 const data = await response.json();
                 if (data && data.success !== false) {
@@ -227,10 +197,7 @@ if ($roomCode === '') {
             }
 
             async function submitGuess(playerId) {
-                if (gameState.status !== 'active' || gameState.my_guess) {
-                    return;
-                }
-
+                if (gameState.status !== 'active' || gameState.my_guess) return;
                 const formData = new FormData();
                 formData.append('guess', playerId);
                 const response = await fetch('game_logic.php?action=guess', { method: 'POST', body: formData });
@@ -299,14 +266,12 @@ if ($roomCode === '') {
                 if (cover) {
                     coverImg.src = cover;
                     coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
-                    document.body.style.backgroundImage = `url(${cover})`;
                 } else {
                     coverImg.src = 'test.jpg';
                     coverImg.alt = 'Track Cover';
-                    document.body.style.backgroundImage = 'none';
                 }
                 
-                document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
+                document.getElementById('trackTitle').textContent = gameState.track?.title || '';
                 document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
 
                 if (gameState.status === 'active' && gameState.track) {

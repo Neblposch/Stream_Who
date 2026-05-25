@@ -1,0 +1,161 @@
+{
+    "ABC123": {
+        "host": "Player1234",
+        "players": [
+            "Player1234",
+            "Guest6789"
+        ],
+        "created_at": 1710000000
+    },
+    "X4O87P": {
+        "host_id": "user_2783",
+        "players": [
+            {
+                "id": "user_2783",
+                "name": "Player_164",
+                "image": null
+            }
+        ],
+        "created_at": 1779725393,
+        "game": {
+            "status": "idle",
+            "round_number": 0,
+            "track": null,
+            "guesses": [],
+            "scores": [],
+            "round_started_at": null,
+            "expires_at": null
+        }
+    },
+    "RCPO6E": {
+        "host_id": "user_2783",
+        "players": [
+            {
+                "id": "user_2783",
+                "name": "Player_164",
+                "image": null
+            }
+        ],
+        "created_at": 1779725875,
+        "game": {
+            "status": "revealed",
+            "round_number": 7,
+            "round_id": "c56321b85cba6581",
+            "source_player_id": "user_2783",
+            "correct_player_id": "user_2783",
+            "track": {
+                "id": "track_005",
+                "title": "Anti-Hero",
+                "artist": "Taylor Swift",
+                "cover": "",
+                "preview_url": "",
+                "playcount": 20
+            },
+            "guesses": [],
+            "scores": {
+                "user_2783": 5
+            },
+            "used_track_ids": [
+                "track_004",
+                "track_005",
+                "track_002",
+                "track_003",
+                "track_002",
+                "track_004",
+                "track_005"
+            ],
+            "used_source_player_ids": [
+                "user_2783",
+                "user_2783",
+                "user_2783",
+                "user_2783",
+                "user_2783",
+                "user_2783",
+                "user_2783"
+            ],
+            "round_started_at": 1779731091,
+            "expires_at": 1779731111,
+            "revealed_at": 1779731113
+        }
+    },
+    "6AY4UI": {
+        "host_id": "user_2783",
+        "players": [
+            {
+                "id": "user_2783",
+                "name": "Player_164",
+                "image": null
+            }
+        ],
+        "created_at": 1779731232,
+        "game": {
+            "status": "revealed",
+            "round_number": 1,
+            "round_id": "058895d9ca3406ee",
+            "source_player_id": "user_2783",
+            "correct_player_id": "user_2783",
+            "track": {
+                "id": "track_002",
+                "title": "Flowers",
+                "artist": "Miley Cyrus",
+                "cover": "",
+                "preview_url": "",
+                "playcount": 47
+            },
+            "guesses": [],
+            "scores": {
+                "user_2783": 0
+            },
+            "used_track_ids": [
+                "track_002"
+            ],
+            "used_source_player_ids": [
+                "user_2783"
+            ],
+            "round_started_at": 1779731234,
+            "expires_at": 1779731254,
+            "revealed_at": 1779731256
+        }
+    },
+    "BR2KTH": {
+        "host_id": "user_2783",
+        "players": [
+            {
+                "id": "user_2783",
+                "name": "Player_164",
+                "image": null
+            }
+        ],
+        "created_at": 1779731481,
+        "game": {
+            "status": "revealed",
+            "round_number": 2,
+            "round_id": "d6a6bdbf034d1641",
+            "source_player_id": "user_2783",
+            "correct_player_id": "user_2783",
+            "track": {
+                "id": "track_004",
+                "title": "Cruel Summer",
+                "artist": "Taylor Swift",
+                "cover": "",
+                "preview_url": "",
+                "playcount": 58
+            },
+            "guesses": [],
+            "scores": {
+                "user_2783": 0
+            },
+            "used_track_ids": [
+                "track_004",
+                "track_004"
+            ],
+            "used_source_player_ids": [
+                "user_2783",
+                "user_2783"
+            ],
+            "round_started_at": 1779732672,
+            "expires_at": 1779732692,
+            "revealed_at": 1779732692
+        }
+    }
+}
