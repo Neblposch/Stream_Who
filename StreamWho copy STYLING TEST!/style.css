@@ -149,8 +149,6 @@ footer {
 }
 
 #info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(35vw, 1fr));
   gap: 1.8vw;
   margin: 4vh auto 0;
   width: 90vw;
@@ -162,6 +160,8 @@ footer {
   color: var(--text);
   position: relative;
   overflow: hidden;
+  width: 50vw;
+  margin-left: 20vw;
 }
 
 .small-info-box::before {
@@ -173,9 +173,10 @@ footer {
 }
 
 #log-in-start {
-  grid-column: 1 / -1;
-  justify-self: center;
+  width: 10vw;
+  margin-left: 40vw;
   margin-bottom: 1%;
+  margin-top: 2vh;
 }
 
 #log-in-start button,
@@ -537,6 +538,63 @@ h2 {
     padding: 3vh 2vw;
   }
 }
+
+
+/* FLIP */
+
+.slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 2%;
+  width: 100%;
+  padding: 5vh 2%;
+}
+.cardflip {
+  flex: 0 0 23%;
+  height: 40vh;
+  scroll-snap-align: start;
+  perspective: 100vw;
+}
+
+.flip {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+}
+
+.card:hover .flip {
+  transform: rotateY(180deg);
+}
+.front,
+.back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  text-align: center;
+  border-radius: 5%;
+}
+/* Front */
+.front {
+  background: #4f46e5;
+  color: white;
+}
+/* Back */
+.back {
+  background: #111827;
+  color: white;
+  transform: rotateY(180deg);
+}
+
 
 @media (max-width: 60vw) {
   h1 {

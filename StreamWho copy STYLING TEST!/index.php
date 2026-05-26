@@ -33,17 +33,67 @@ if (isset($_GET['login'])) {
 
     <main>
         <section id="info">
-            <div id="vid" class="small-info-box">
-                <div style="background:#1C2A45; height:150px; display:flex; align-items:center; justify-content:center; border-radius:12px;">🎬 Video Platzhalter</div>
-            </div>
             <div id="text" class="small-info-box">
-                <p>You don't guess songs — you guess the person behind the song.<br><br>
-                Each round, a track is selected from one player's listening history and shown to everyone.<br><br>
-                Instead, players try to figure out which person in the group has listened to it the most.<br><br>
-                After everyone makes their guess, the answer is revealed and points are updated.</p>
+                <p>You don’t guess songs — you guess the person behind the song.
+                <br><br>
+                Each round, a track is selected from one player’s listening history and shown to everyone. The cover, title, and artist appear on screen, but the real challenge isn’t identifying the music itself.
+                <br>
+                Instead, players try to figure out which person in the group has listened to it the most.
+                <br>
+                After everyone makes their guess, the answer is revealed and points are updated. Then the game moves on to the next round, using a different player’s data, keeping everything unpredictable and fast-paced.
+                <br>
+                Over time, patterns start to show — who loops songs, who forgets about tracks, and who has surprisingly specific taste.
+                <br><br>
+                It’s simple: observe, think, and read the room through music.</p>
             </div>
             <div id="log-in-start">
                 <button><a href="?login=1" style="color:inherit; text-decoration:none;">Login</a></button>
+            </div>
+        </section>
+        <section>
+            <div class="slider">
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 1</div>
+                    <div class="back">Info 1</div>
+                    </div>
+                </div>
+
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 2</div>
+                    <div class="back">Info 2</div>
+                    </div>
+                </div>
+
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 3</div>
+                    <div class="back">Info 3</div>
+                    </div>
+                </div>
+
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 4</div>
+                    <div class="back">Info 4</div>
+                    </div>
+                </div>
+
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 5</div>
+                    <div class="back">Info 5</div>
+                    </div>
+                </div>
+
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Card 6</div>
+                    <div class="back">Info 6</div>
+                    </div>
+                </div>
+
             </div>
         </section>
     </main>
