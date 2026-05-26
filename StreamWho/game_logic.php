@@ -8,11 +8,21 @@ const ROUND_DURATION = 20;
 
 function buildTrackPayload(array $track): array
 {
+    $artists = $track['artists'] ?? [];
+    $artistName = is_array($artists) && isset($artists[0]['name'])
+        ? (string)$artists[0]['name']
+        : ($track['artist'] ?? 'Unknown artist');
+
+    $cover = $track['cover'] ?? null;
+    if (empty($cover) && isset($track['album']['images']) && is_array($track['album']['images'])) {
+        $cover = $track['album']['images'][0]['url'] ?? '';
+    }
+
     return [
         'id' => $track['id'] ?? '',
-        'title' => $track['name'] ?? 'Unknown track',
-        'artist' => $track['artist'] ?? 'Unknown artist',
-        'cover' => $track['cover'] ?? '',
+        'title' => $track['title'] ?? $track['name'] ?? 'Unknown track',
+        'artist' => $artistName,
+        'cover' => $cover ?? '',
         'preview_url' => $track['preview_url'] ?? '',
         'playcount' => (int)($track['playcount'] ?? 0),
     ];

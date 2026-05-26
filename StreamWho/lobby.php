@@ -45,9 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="lobby">
 
 <!-- Burger Menu -->
-<div class="menu">
-    <div class="burger">&#9776;</div>
-    <div class="menu-content">
+<div class="menu" id="menu">
+    <button type="button" class="burger" id="menuToggle" aria-expanded="false" aria-controls="menuContent">
+        &#9776;
+    </button>
+    <div class="menu-content" id="menuContent">
         <a href="logout.php">Logout</a>
         <a href="#">Impressum</a>
     </div>
@@ -97,6 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             showJoin.style.display = 'none'
             createRoom.style.display = 'none'
         })
+
+        const menu = document.getElementById('menu')
+        const menuToggle = document.getElementById('menuToggle')
+
+        if (menu && menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                const isOpen = menu.classList.toggle('open')
+                menuToggle.setAttribute('aria-expanded', String(isOpen))
+            })
+        }
     </script>
     </div>
 

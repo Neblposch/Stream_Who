@@ -245,6 +245,10 @@ input:focus {
   font-size: 3.2vh;
   cursor: pointer;
   color: var(--text);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .menu-content {
@@ -261,7 +265,7 @@ input:focus {
   box-shadow: 0 2.8vh 8vh rgba(8, 18, 34, 0.35);
 }
 
-.menu:hover .menu-content {
+.menu.open .menu-content {
   display: flex;
 }
 
