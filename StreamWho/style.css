@@ -47,6 +47,9 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -2;
+  background: radial-gradient(circle at 16% 16%, rgba(122, 190, 255, 0.14), transparent 14%),
+    radial-gradient(circle at 78% 34%, rgba(75, 171, 255, 0.1), transparent 12%),
+    radial-gradient(circle at 52% 82%, rgba(11, 31, 64, 0.55), transparent 24%);
   pointer-events: none;
 }
 
@@ -146,8 +149,6 @@ footer {
 }
 
 #info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(35vw, 1fr));
   gap: 1.8vw;
   margin: 4vh auto 0;
   width: 90vw;
@@ -159,6 +160,8 @@ footer {
   color: var(--text);
   position: relative;
   overflow: hidden;
+  width: 50vw;
+  margin-left: 20vw;
 }
 
 .small-info-box::before {
@@ -170,9 +173,10 @@ footer {
 }
 
 #log-in-start {
-  grid-column: 1 / -1;
-  justify-self: center;
+  width: 10vw;
+  margin-left: 40vw;
   margin-bottom: 1%;
+  margin-top: 2vh;
 }
 
 #log-in-start button,
@@ -442,8 +446,6 @@ h2 {
   padding: 2.5vh 2.5vw;
   max-width: 52vw;
   width: 90vw;
-  backdrop-filter: blur(1.7px);
-  -webkit-backdrop-filter: blur(1.7px);
 }
 
 #gameCard{
@@ -454,8 +456,6 @@ h2 {
   border: 0.12vw solid rgba(122, 190, 255, 0.14);
   padding: 3vh 3vw;
   border-radius: 16px;
-  backdrop-filter: blur(1.7px);
-  -webkit-backdrop-filter: blur(1.7px);
 }
 .cover {
   width: auto;

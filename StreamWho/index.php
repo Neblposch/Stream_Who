@@ -30,26 +30,24 @@ startSession();
 
     <main>
         <section id="info">
-            <div id="vid" class="small-info-box">
-                <img src="img/placeholderVid.png" alt="placeholder">
-            </div>
             <div id="text" class="small-info-box">
                 <p>You don’t guess songs — you guess the person behind the song.
-
+                <br><br>
                 Each round, a track is selected from one player’s listening history and shown to everyone. The cover, title, and artist appear on screen, but the real challenge isn’t identifying the music itself.
-
+                <br>
                 Instead, players try to figure out which person in the group has listened to it the most.
-
+                <br>
                 After everyone makes their guess, the answer is revealed and points are updated. Then the game moves on to the next round, using a different player’s data, keeping everything unpredictable and fast-paced.
-
+                <br>
                 Over time, patterns start to show — who loops songs, who forgets about tracks, and who has surprisingly specific taste.
-
+                <br><br>
                 It’s simple: observe, think, and read the room through music.</p>
             </div>
             <div id="log-in-start">
                 <button><a href="spotify_login.php">Login</a></button>
             </div>
         </section>
+        
     </main>
 
     <footer>
