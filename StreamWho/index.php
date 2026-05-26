@@ -117,6 +117,12 @@ startSession();
                     <div class="back">“simple idea but really effective. it turns music taste into a game which is honestly genius for friend groups.”</div>
                     </div>
                 </div>
+                <div class="cardflip">
+                    <div class="flip">
+                    <div class="front">Want to leave your own review?</div>
+                    <div class="back"><a href="mailto:annalenasee9@gmail.com?subject=Review%20Request">Text us and send a request!</a><br>Make sure to add your name, and optional age</div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
