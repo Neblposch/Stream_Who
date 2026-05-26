@@ -539,6 +539,96 @@ h2 {
   }
 }
 
+
+/* FLIP */
+.slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 2%;
+  width: 100%;
+  padding: 5vh 2%;
+}
+
+.cardflip {
+  flex: 0 0 23%;
+  height: 40vh;
+  scroll-snap-align: start;
+  perspective: 100vw;
+}
+
+.flip {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+}
+
+.cardflip:hover .flip {
+  transform: rotateY(180deg);
+}
+
+.front,
+.back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  border-radius: 16px;
+}
+
+/* Front - Glass Effect */
+.front {
+  background: rgba(18, 32, 53, 0.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.12vw solid rgba(122, 190, 255, 0.14);
+  color: var(--text, #E6F3FF);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Back - Glass Effect */
+.back {
+  background: rgba(18, 32, 53, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.12vw solid rgba(122, 190, 255, 0.14);
+  color: var(--text, #E6F3FF);
+  transform: rotateY(180deg);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  padding: 2vw;
+}
+
+/* Optional: Scrollbar Styling passend zum Design */
+.slider::-webkit-scrollbar {
+  height: 8px;
+}
+
+.slider::-webkit-scrollbar-track {
+  background: rgba(18, 32, 53, 0.3);
+  border-radius: 10px;
+}
+
+.slider::-webkit-scrollbar-thumb {
+  background: rgba(122, 190, 255, 0.5);
+  border-radius: 10px;
+}
+
+.slider::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 190, 255, 0.8);
+}
+
+#reviews h3{
+  text-align: center;
+  margin-top: 5vh;
+}
+
 @media (max-width: 60vw) {
   h1 {
     font-size: 3.5vh;
