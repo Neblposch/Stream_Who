@@ -212,6 +212,22 @@ function finalizeRoundIfNeeded(array &$room): void
     $room['game'] = $game;
 }
 
+function endGame(array $room): array
+{
+    $game = $room['game'] ?? defaultGameState();
+    $game['status'] = 'ended';
+    $game['revealed_at'] = time();
+
+    foreach ($room['players'] as $player) {
+        if (!isset($game['scores'][$player['id']])) {
+            $game['scores'][$player['id']] = 0;
+        }
+    }
+
+    $room['game'] = $game;
+    return $room;
+}
+
 function startNewRound(array $room): array
 {
     $playersWithTracks = loadPlayersWithTracks($room['players']);
@@ -287,6 +303,11 @@ if ($action === 'start' || $action === 'next_round') {
         exit;
     }
 
+    if (($room['game']['status'] ?? 'idle') === 'ended') {
+        echo json_encode(['success' => false, 'message' => 'The game has already ended.']);
+        exit;
+    }
+
     if (($room['game']['status'] ?? 'idle') !== 'active') {
         try {
             $room = startNewRound($room);
@@ -296,6 +317,24 @@ if ($action === 'start' || $action === 'next_round') {
             exit;
         }
     }
+
+    echo json_encode(buildGameResponse($room, $userId));
+    exit;
+}
+
+if ($action === 'end_game') {
+    if ($room['host_id'] !== $userId) {
+        echo json_encode(['success' => false, 'message' => 'Only the host can end the game.']);
+        exit;
+    }
+
+    if (($room['game']['status'] ?? 'idle') === 'ended') {
+        echo json_encode(buildGameResponse($room, $userId));
+        exit;
+    }
+
+    $room = endGame($room);
+    persistRoomState($room, $roomCode);
 
     echo json_encode(buildGameResponse($room, $userId));
     exit;

@@ -522,6 +522,99 @@ h2 {
   text-align: center;
 }
 
+.leaderboard-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 2vw;
+}
+
+.leaderboard-container {
+  width: min(72vw, 860px);
+  gap: 2vh;
+}
+
+.leaderboard-header {
+  text-align: center;
+}
+
+.leaderboard-header h1 {
+  margin-top: 0.8vh;
+}
+
+.leaderboard-subtitle {
+  color: var(--muted);
+  letter-spacing: 0.18vw;
+}
+
+.leaderboard-card {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.leaderboard-title {
+  text-align: center;
+  margin-bottom: 1.5vh;
+}
+
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  padding: 1.2vh 1.2vw;
+  border-radius: 1.2vh;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-rank {
+  min-width: 2.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.leaderboard-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard-avatar-placeholder {
+  display: inline-block;
+}
+
+.leaderboard-player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35vh;
+}
+
+.leaderboard-score {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.leaderboard-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 2vh 0;
+}
+
 @media (max-width: 90vw) {
   header {
     grid-template-columns: 1fr;

@@ -23,6 +23,11 @@ if ($roomCode === '') {
     } else {
         $_SESSION['current_room'] = $roomCode;
     }
+
+    if ($roomData && (($roomData['game']['status'] ?? 'idle') === 'ended')) {
+        header('Location: leaderboard.php?room=' . urlencode($roomCode));
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -144,6 +149,7 @@ if ($roomCode === '') {
                 <button id="startBtn" class="button control" style="display:none;">Start Game</button>
                 <button id="playTrackBtn" class="button control">Play selected song</button>
                 <button id="nextBtn" class="button control">Next Round</button>
+                <button id="endGameBtn" class="button control">End Game</button>
             </div>
             <div id="feedback" class="feedback"></div>
         </div>
@@ -158,6 +164,7 @@ if ($roomCode === '') {
                 is_host: <?= (($spotifyUser['id'] ?? '') === ($roomData['host_id'] ?? '')) ? 'true' : 'false' ?>,
                 round: <?= $roomData['game']['round_number'] ?? 0 ?>
             };
+            const roomCode = <?= json_encode($roomCode) ?>;
             
             let currentAudio = null;
             let currentTrackId = null;
@@ -223,6 +230,22 @@ if ($roomCode === '') {
                 const data = await response.json();
                 if (data && data.success !== false) {
                     gameState = { ...gameState, ...data };
+                }
+                render();
+            }
+
+            async function endGame() {
+                if (!gameState.is_host || gameState.status === 'ended') {
+                    return;
+                }
+
+                const response = await fetch('game_logic.php?action=end_game', { method: 'POST' });
+                const data = await response.json();
+                if (data && data.success !== false) {
+                    gameState = { ...gameState, ...data };
+                    stopPreview();
+                    window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
+                    return;
                 }
                 render();
             }
@@ -294,10 +317,21 @@ if ($roomCode === '') {
             }
 
             function render() {
+                const isGameEnded = gameState.status === 'ended';
                 const cover = gameState.track?.cover || '';
                 const coverImg = document.getElementById('trackCover');
                 const playTrackBtn = document.getElementById('playTrackBtn');
+                const gameCard = document.getElementById('gameCard');
                 
+                if (isGameEnded) {
+                    stopPreview();
+                    document.body.style.backgroundImage = 'none';
+                    gameCard.style.display = 'none';
+                    return;
+                }
+
+                gameCard.style.display = 'block';
+
                 if (cover) {
                     coverImg.src = cover;
                     coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
@@ -350,13 +384,17 @@ if ($roomCode === '') {
 
                 const startBtn = document.getElementById('startBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                const endGameBtn = document.getElementById('endGameBtn');
                 const isHost = Boolean(gameState.is_host);
 
-                startBtn.style.display = isHost && gameState.status !== 'active' ? 'inline-block' : 'none';
-                startBtn.disabled = !isHost || gameState.status === 'active';
+                startBtn.style.display = isHost && gameState.status === 'idle' ? 'inline-block' : 'none';
+                startBtn.disabled = !isHost || gameState.status !== 'idle';
 
                 nextBtn.style.display = isHost && gameState.status === 'revealed' ? 'inline-block' : 'none';
                 nextBtn.disabled = !isHost || gameState.status !== 'revealed';
+
+                endGameBtn.style.display = isHost && ['active', 'revealed'].includes(gameState.status) ? 'inline-block' : 'none';
+                endGameBtn.disabled = !isHost || !['active', 'revealed'].includes(gameState.status);
 
                 if (gameState.status === 'active') {
                     document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted.' : 'Guess the player who listened to this track the most.';
@@ -369,7 +407,7 @@ if ($roomCode === '') {
                     document.getElementById('feedback').textContent = 'Waiting for the host to start the next round.';
                     document.getElementById('feedback').style.color = '';
                 }
-                
+
                 updateRoomDisplay();
             }
 
@@ -381,6 +419,7 @@ if ($roomCode === '') {
 
             document.getElementById('startBtn').onclick = startGame;
             document.getElementById('nextBtn').onclick = nextRound;
+            document.getElementById('endGameBtn').onclick = endGame;
             document.getElementById('playTrackBtn').onclick = () => playPreview(gameState.track);
 
             render();
