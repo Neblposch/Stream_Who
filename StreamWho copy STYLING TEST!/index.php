@@ -52,42 +52,42 @@ if (isset($_GET['login'])) {
         </section>
         <section>
             <div class="slider">
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 1</div>
                     <div class="back">Info 1</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 2</div>
                     <div class="back">Info 2</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 3</div>
                     <div class="back">Info 3</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 4</div>
                     <div class="back">Info 4</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 5</div>
                     <div class="back">Info 5</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="cardflip">
                     <div class="flip">
                     <div class="front">Card 6</div>
                     <div class="back">Info 6</div>

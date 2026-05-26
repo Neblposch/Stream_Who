@@ -539,7 +539,9 @@ h2 {
   }
 }
 
-/* SLIDER = Slideshow Container */
+
+/* FLIP */
+
 .slider {
   display: flex;
   overflow-x: auto;
@@ -548,16 +550,13 @@ h2 {
   width: 100%;
   padding: 5vh 2%;
 }
-
-/* Jede "Seite" im Slider enthält 4 Cards */
-.card {
+.cardflip {
   flex: 0 0 23%;
   height: 40vh;
   scroll-snap-align: start;
   perspective: 100vw;
 }
 
-/* FLIP */
 .flip {
   width: 100%;
   height: 100%;
