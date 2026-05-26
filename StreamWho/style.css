@@ -172,14 +172,6 @@ footer {
   pointer-events: none;
 }
 
-#log-in-start {
-  width: 10vw;
-  margin-left: 40vw;
-  margin-bottom: 1%;
-  margin-top: 2vh;
-}
-
-#log-in-start button,
 button,
 .button,
 .player-btn,
@@ -194,7 +186,6 @@ button,
   animation: softPulse 4.5s ease-in-out infinite alternate;
 }
 
-#log-in-start button,
 button,
 .control {
   padding: 1.7vh 2.6vw;

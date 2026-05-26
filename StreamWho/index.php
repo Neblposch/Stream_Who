@@ -43,9 +43,6 @@ startSession();
                 <br><br>
                 It’s simple: observe, think, and read the room through music.</p>
             </div>
-            <div id="log-in-start">
-                <button><a href="spotify_login.php">Login</a></button>
-            </div>
         </section>
         
         <section id="reviews">
