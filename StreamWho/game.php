@@ -142,6 +142,7 @@ if ($roomCode === '') {
             </div>
             <div id="controls" class="controls">
                 <button id="startBtn" class="button control" style="display:none;">Start Game</button>
+                <button id="playTrackBtn" class="button control">Play selected song</button>
                 <button id="nextBtn" class="button control">Next Round</button>
             </div>
             <div id="feedback" class="feedback"></div>
@@ -154,7 +155,7 @@ if ($roomCode === '') {
                 status: '<?= $roomData['game']['status'] ?? 'idle' ?>',
                 track: <?= json_encode($roomData['game']['track'] ?? null) ?>,
                 my_guess: null,
-                is_host: <?= ($_SESSION['user_id'] ?? '') === ($roomData['host_id'] ?? '') ? 'true' : 'false' ?>,
+                is_host: <?= (($spotifyUser['id'] ?? '') === ($roomData['host_id'] ?? '')) ? 'true' : 'false' ?>,
                 round: <?= $roomData['game']['round_number'] ?? 0 ?>
             };
             
@@ -295,6 +296,7 @@ if ($roomCode === '') {
             function render() {
                 const cover = gameState.track?.cover || '';
                 const coverImg = document.getElementById('trackCover');
+                const playTrackBtn = document.getElementById('playTrackBtn');
                 
                 if (cover) {
                     coverImg.src = cover;
@@ -308,6 +310,10 @@ if ($roomCode === '') {
                 
                 document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
                 document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
+
+                const hasPreview = Boolean(gameState.track?.preview_url);
+                playTrackBtn.disabled = !hasPreview;
+                playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'Preview unavailable';
 
                 if (gameState.status === 'active' && gameState.track) {
                     playPreview(gameState.track);
@@ -344,9 +350,13 @@ if ($roomCode === '') {
 
                 const startBtn = document.getElementById('startBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                startBtn.style.display = gameState.is_host ? 'inline-block' : 'none';
-                startBtn.disabled = !gameState.is_host || gameState.status === 'active';
-                nextBtn.disabled = !gameState.is_host || gameState.status !== 'revealed';
+                const isHost = Boolean(gameState.is_host);
+
+                startBtn.style.display = isHost && gameState.status !== 'active' ? 'inline-block' : 'none';
+                startBtn.disabled = !isHost || gameState.status === 'active';
+
+                nextBtn.style.display = isHost && gameState.status === 'revealed' ? 'inline-block' : 'none';
+                nextBtn.disabled = !isHost || gameState.status !== 'revealed';
 
                 if (gameState.status === 'active') {
                     document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted.' : 'Guess the player who listened to this track the most.';
@@ -371,6 +381,7 @@ if ($roomCode === '') {
 
             document.getElementById('startBtn').onclick = startGame;
             document.getElementById('nextBtn').onclick = nextRound;
+            document.getElementById('playTrackBtn').onclick = () => playPreview(gameState.track);
 
             render();
             fetchState();
