@@ -98,7 +98,7 @@ if ($roomCode === '') {
                 <?php endif; ?>
 
                 <div class="controls" style="justify-content: center; margin-top: 2vh;">
-                    <a class="button control" href="joinLobby.php">Back to Join Lobby</a>
+                    <a class="button control" href="lobby.php">Back to Join Lobby</a>
                 </div>
             </div>
         <?php endif; ?>
