@@ -327,6 +327,7 @@ if ($roomCode === '') {
                     stopPreview();
                     document.body.style.backgroundImage = 'none';
                     gameCard.style.display = 'none';
+                    window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
                     return;
                 }
 
