@@ -168,6 +168,7 @@ if ($roomCode === '') {
             
             let currentAudio = null;
             let currentTrackId = null;
+            let previewFailed = false;
             let hasScrolledToGame = false;
 
             function stopPreview() {
@@ -178,9 +179,13 @@ if ($roomCode === '') {
                 }
             }
 
-            function playPreview(track) {
+            function playPreview(track, force = false) {
                 if (!track || !track.preview_url) {
                     stopPreview();
+                    return;
+                }
+
+                if (previewFailed && !force) {
                     return;
                 }
 
@@ -192,7 +197,10 @@ if ($roomCode === '') {
                 currentTrackId = track.id;
                 currentAudio = new Audio(track.preview_url);
                 currentAudio.volume = 0.4;
-                currentAudio.play().catch(() => {});
+                currentAudio.play().catch(() => {
+                    previewFailed = true;
+                    stopPreview();
+                });
             }
 
             async function fetchState() {
@@ -350,7 +358,11 @@ if ($roomCode === '') {
                 playTrackBtn.disabled = !hasPreview;
                 playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'Preview unavailable';
 
-                if (gameState.status === 'active' && gameState.track) {
+                if (gameState.track && currentTrackId !== gameState.track.id) {
+                    previewFailed = false;
+                }
+
+                if (gameState.status === 'active' && gameState.track && !previewFailed) {
                     playPreview(gameState.track);
                 } else {
                     stopPreview();
@@ -421,7 +433,10 @@ if ($roomCode === '') {
             document.getElementById('startBtn').onclick = startGame;
             document.getElementById('nextBtn').onclick = nextRound;
             document.getElementById('endGameBtn').onclick = endGame;
-            document.getElementById('playTrackBtn').onclick = () => playPreview(gameState.track);
+            document.getElementById('playTrackBtn').onclick = () => {
+                previewFailed = false;
+                playPreview(gameState.track, true);
+            };
 
             render();
             fetchState();
