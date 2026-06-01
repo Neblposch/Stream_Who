@@ -276,8 +276,9 @@ input:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at top center, rgba(122, 190, 255, 0.08), transparent 18%),
-    rgba(20, 30, 48, 0.92);
+    background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
+    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 16%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 35%, var(--bg-soft) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -424,11 +425,11 @@ h2 {
 /*==Game==*/
 
 /* Game Page Styles */
+
 .background {
   position: relative;
   min-height: 100vh;
   background: rgba(18, 32, 53, 0.75);
-  border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(1.7px);
   -webkit-backdrop-filter: blur(1.7px);
@@ -749,4 +750,24 @@ h2 {
   to {
     box-shadow: 0 0 2.8vh rgba(122, 190, 255, 0.2);
   }
+}
+
+
+
+
+/* Game page background - default Gradient */
+body.background {
+    background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
+                radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 16%),
+                linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 35%, var(--bg-soft) 100%);
+    background-attachment: fixed;
+    transition: background-image 0.3s ease;
+}
+
+/* Wenn Track-Cover gesetzt wird */
+body.background.track-active {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 }

@@ -95,13 +95,6 @@ if ($roomCode === '') {
         .overlay {
             background: transparent;
         }
-        body.background {
-            background-size: cover !important;
-            background-position: center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-            transition: background-image 0.3s ease;
-        }
     </style>
 </head>
 <body id="gameBody" class="background">
@@ -345,10 +338,12 @@ if ($roomCode === '') {
                     coverImg.src = cover;
                     coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
                     coverImg.style.display = 'block';
-                    document.body.style.backgroundImage = `url(${cover})`;
+                    document.body.style.backgroundImage = `url('${cover}')`;
+                    document.body.classList.add('track-active');
                 } else {
                     coverImg.style.display = 'none';
-                    document.body.style.backgroundImage = 'none';
+                    document.body.style.backgroundImage = '';
+                    document.body.classList.remove('track-active');
                 }
                 
                 if (gameState.status === 'active') {
