@@ -341,20 +341,25 @@ if ($roomCode === '') {
 
                 gameCard.style.display = 'block';
 
-                if (cover) {
+                if (gameState.status === 'active' && cover) {
                     coverImg.src = cover;
                     coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
+                    coverImg.style.display = 'block';
                     document.body.style.backgroundImage = `url(${cover})`;
                 } else {
-                    coverImg.src = 'test.jpg';
-                    coverImg.alt = 'Track Cover';
+                    coverImg.style.display = 'none';
                     document.body.style.backgroundImage = 'none';
                 }
                 
-                document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
-                document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
+                if (gameState.status === 'active') {
+                    document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
+                    document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
+                } else {
+                    document.getElementById('trackTitle').textContent = 'Waiting for the host to start the game';
+                    document.getElementById('trackArtist').textContent = '';
+                }
 
-                const hasPreview = Boolean(gameState.track?.preview_url);
+                const hasPreview = gameState.status === 'active' && Boolean(gameState.track?.preview_url);
                 playTrackBtn.disabled = !hasPreview;
                 playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'Preview unavailable';
 
