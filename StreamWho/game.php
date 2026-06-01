@@ -8,6 +8,7 @@ requireLogin();
 
 $spotifyUser = $_SESSION['spotify_user'] ?? [];
 $currentUserId = $spotifyUser['id'] ?? 'unknown';
+$accessToken = getSpotifyAccessToken($currentUserId);
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
 $roomData = null;
 $roomError = '';
@@ -37,6 +38,7 @@ if ($roomCode === '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>StreamWho - Game</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <style>
         .room-info {
             transition: all 0.3s ease;
@@ -158,42 +160,83 @@ if ($roomCode === '') {
                 round: <?= $roomData['game']['round_number'] ?? 0 ?>
             };
             const roomCode = <?= json_encode($roomCode) ?>;
+            const spotifyAccessToken = <?= json_encode($accessToken) ?>;
             
-            let currentAudio = null;
-            let currentTrackId = null;
-            let previewFailed = false;
             let hasScrolledToGame = false;
+            let spotifyPlayer = null;
+            let spotifyDeviceId = null;
 
-            function stopPreview() {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    currentAudio = null;
+            // Initialize Spotify Web Playback SDK (optional for future use)
+            window.onSpotifyWebPlaybackSDKReady = () => {
+                console.log('Spotify Web Playback SDK loaded');
+            };
+
+            async function getAvailableDevices() {
+                if (!spotifyAccessToken) {
+                    return [];
                 }
+
+                try {
+                    const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+                        headers: {
+                            'Authorization': 'Bearer ' + spotifyAccessToken
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.devices || [];
+                    }
+                } catch (error) {
+                    console.error('Error fetching devices:', error);
+                }
+                return [];
             }
 
-            function playPreview(track, force = false) {
-                if (!track || !track.preview_url) {
-                    stopPreview();
-                    return;
+            async function playSpotifyTrack(trackId) {
+                if (!spotifyAccessToken) {
+                    console.warn('Spotify access token not available');
+                    return false;
                 }
 
-                if (previewFailed && !force) {
-                    return;
-                }
+                try {
+                    // Get available devices
+                    const devices = await getAvailableDevices();
+                    if (devices.length === 0) {
+                        console.warn('No Spotify devices available. Open Spotify on any device and try again.');
+                        alert('No active Spotify devices found. Please open Spotify on your phone, computer, or web player and try again.');
+                        return false;
+                    }
 
-                if (currentTrackId === track.id && currentAudio && !currentAudio.paused) {
-                    return;
-                }
+                    // Use the first active device, or the first device if none are active
+                    const activeDevice = devices.find(d => d.is_active) || devices[0];
+                    const deviceId = activeDevice.id;
 
-                stopPreview();
-                currentTrackId = track.id;
-                currentAudio = new Audio(track.preview_url);
-                currentAudio.volume = 0.4;
-                currentAudio.play().catch(() => {
-                    previewFailed = true;
-                    stopPreview();
-                });
+                    const response = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + deviceId, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + spotifyAccessToken
+                        },
+                        body: JSON.stringify({
+                            uris: ['spotify:track:' + trackId]
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log('Playing track on device:', activeDevice.name);
+                        return true;
+                    } else if (response.status === 401) {
+                        console.error('Token expired or invalid');
+                        return false;
+                    } else {
+                        console.error('Failed to play track:', response.status);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error playing track:', error);
+                    return false;
+                }
             }
 
             async function fetchState() {
@@ -244,7 +287,6 @@ if ($roomCode === '') {
                 const data = await response.json();
                 if (data && data.success !== false) {
                     gameState = { ...gameState, ...data };
-                    stopPreview();
                     window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
                     return;
                 }
@@ -325,7 +367,6 @@ if ($roomCode === '') {
                 const gameCard = document.getElementById('gameCard');
                 
                 if (isGameEnded) {
-                    stopPreview();
                     document.body.style.backgroundImage = 'none';
                     gameCard.style.display = 'none';
                     window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
@@ -354,19 +395,10 @@ if ($roomCode === '') {
                     document.getElementById('trackArtist').textContent = '';
                 }
 
-                const hasPreview = gameState.status === 'active' && Boolean(gameState.track?.preview_url);
+                const hasPreview = gameState.status === 'active' && Boolean(gameState.track?.id);
                 playTrackBtn.disabled = !hasPreview;
-                playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'Preview unavailable';
-
-                if (gameState.track && currentTrackId !== gameState.track.id) {
-                    previewFailed = false;
-                }
-
-                if (gameState.status === 'active' && gameState.track && !previewFailed) {
-                    playPreview(gameState.track);
-                } else {
-                    stopPreview();
-                }
+                playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'No track available';
+                playTrackBtn.style.display = hasPreview ? 'inline-block' : 'none';
 
                 const playersDiv = document.getElementById('players');
                 playersDiv.innerHTML = '';
@@ -434,8 +466,9 @@ if ($roomCode === '') {
             document.getElementById('nextBtn').onclick = nextRound;
             document.getElementById('endGameBtn').onclick = endGame;
             document.getElementById('playTrackBtn').onclick = () => {
-                previewFailed = false;
-                playPreview(gameState.track, true);
+                if (gameState.track && gameState.track.id) {
+                    playSpotifyTrack(gameState.track.id);
+                }
             };
 
             render();
