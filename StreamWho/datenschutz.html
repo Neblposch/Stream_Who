@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datenschutzerklärung - Stream Who</title>
+    <style>
+        /* Same design system as your game + impressum */
+        :root {
+            --bg-deep: #070B17;
+            --bg-mid: #111A2B;
+            --bg-soft: #1C2A45;
+            --panel-glass: rgba(10, 16, 28, 0.5);
+            --panel-strong: rgba(8, 14, 22, 0.78);
+            --border-glow: rgba(115, 180, 255, 0.16);
+            --accent: #7ABEFF;
+            --accent-soft: rgba(122, 190, 255, 0.14);
+            --text: #E6F3FF;
+            --muted: #9CBFE5;
+            --shadow: 0 4vh 8vh rgba(0, 0, 0, 0.36);
+            --radius: 2.4vh;
+            --radius-sm: 1.8vh;
+            --transition: all 0.28s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
+                        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 16%),
+                        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 35%, var(--bg-soft) 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Glass container */
+        .datenschutz-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(18, 32, 53, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 0.12vw solid rgba(122, 190, 255, 0.14);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .datenschutz-header {
+            padding: 2rem 2rem 1rem 2rem;
+            border-bottom: 1px solid rgba(122, 190, 255, 0.15);
+            text-align: center;
+        }
+
+        .datenschutz-header h1 {
+            font-size: 2rem;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .datenschutz-header p {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .datenschutz-content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(122, 190, 255, 0.2);
+        }
+
+        .section h3 {
+            font-size: 1rem;
+            color: var(--text);
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .info-block {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 1rem 1.2rem;
+            border-radius: var(--radius-sm);
+            margin: 0.8rem 0;
+            line-height: 1.6;
+        }
+
+        .info-block p {
+            margin: 0.4rem 0;
+        }
+
+        .info-block strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .info-block ul {
+            margin: 0.5rem 0 0.5rem 1.5rem;
+        }
+
+        .info-block li {
+            margin: 0.3rem 0;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: rgba(122, 190, 255, 0.15);
+            margin: 1.5rem 0;
+        }
+
+        .datenschutz-footer {
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            border-top: 1px solid rgba(122, 190, 255, 0.1);
+        }
+
+        .datenschutz-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .datenschutz-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .back-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            background: rgba(122, 190, 255, 0.1);
+            border-radius: 2rem;
+            transition: var(--transition);
+        }
+
+        .back-link a:hover {
+            background: rgba(122, 190, 255, 0.2);
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            .datenschutz-content {
+                padding: 1.2rem;
+            }
+            .section h2 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="datenschutz-container">
+    <div class="datenschutz-header">
+        <h1>Datenschutzerklärung</h1>
+        <p>Datenschutzinformationen gemäß DSGVO für das Spiel "Stream Who"</p>
+    </div>
+
+    <div class="datenschutz-content">
+
+        <!-- 1. Verantwortlicher -->
+        <div class="section">
+            <h2>1. Verantwortlicher</h2>
+            <div class="info-block">
+                <p><strong>Verantwortlich für die Datenverarbeitung ist:</strong></p>
+                <p>Emily Hartmann (Projektleitung)<br>
+                Annalena See<br>
+                Tobias Posch</p>
+                <p><strong>Kontakt:</strong> e.hartmann@students.htl-leonding.ac.at<br>
+                <strong>Adresse:</strong> HTL Leonding, Limesstraße 12, 4060 Leonding, Österreich</p>
+                <p><em>Dies ist ein Schulprojekt der HTL Leonding, 3AHITM, Schuljahr 2025/26.</em></p>
+            </div>
+        </div>
+
+        <!-- 2. Allgemein -->
+        <div class="section">
+            <h2>2. Allgemeine Informationen</h2>
+            <div class="info-block">
+                <p>Stream Who ist ein Multiplayer-Browserspiel, bei dem Spieler basierend auf ihren Spotify-Hördaten raten, welcher Song zu welchem Spieler gehört. Der Schutz Ihrer personenbezogenen Daten ist uns wichtig. Wir verarbeiten Ihre Daten ausschließlich im Rahmen der gesetzlichen Bestimmungen (DSGVO, TKG 2003).</p>
+                <p>Da es sich um ein studentisches Projekt handelt, erheben wir nur die für den Spielbetrieb unbedingt notwendigen Daten.</p>
+            </div>
+        </div>
+
+        <!-- 3. Welche Daten wir verarbeiten -->
+        <div class="section">
+            <h2>3. Welche Daten wir verarbeiten</h2>
+            <div class="info-block">
+                <p><strong>Über die Spotify API (mit Ihrer Einwilligung):</strong></p>
+                <ul>
+                    <li>Ihr Spotify-Anzeigename (Username)</li>
+                    <li>Ihre Top-Tracks (meistgehörte Songs)</li>
+                    <li>Ihr öffentliches Spotify-Profilbild (falls vorhanden)</li>
+                </ul>
+                <p><strong>Daten, die Sie selbst eingeben:</strong></p>
+                <ul>
+                    <li>Ihren gewählten Spielernamen (falls abweichend)</li>
+                    <li>Lobby-Codes (zur Identifikation der Spielrunde)</li>
+                </ul>
+                <p><strong>Technisch notwendige Daten (Server-Logs):</strong></p>
+                <ul>
+                    <li>IP-Adresse (anonymisiert / nur temporär)</li>
+                    <li>Zeitpunkt des Zugriffs</li>
+                    <li>Browsertyp und -version</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. Zweck der Verarbeitung -->
+        <div class="section">
+            <h2>4. Wofür wir Ihre Daten verwenden</h2>
+            <div class="info-block">
+                <ul>
+                    <li><strong>Spielbetrieb:</strong> Um die Spielrunde zu organisieren und die Raterunden durchzuführen</li>
+                    <li><strong>Punktestand:</strong> Um das Leaderboard innerhalb Ihrer Lobby anzuzeigen</li>
+                    <li><strong>Spotify-Integration:</strong> Um zufällige Songs aus Ihrer Hörhistorie auszuwählen</li>
+                    <li><strong>Technische Stabilität:</strong> Um Fehler zu beheben und die Performance zu verbessern</li>
+                </ul>
+                <p>Eine Weitergabe Ihrer Daten an Dritte erfolgt <strong>nicht</strong>, außer an Spotify im Rahmen der API-Nutzung (siehe unten).</p>
+            </div>
+        </div>
+
+        <!-- 5. Spotify API -->
+        <div class="section">
+            <h2>5. Spotify API & Spotify Datenschutz</h2>
+            <div class="info-block">
+                <p>Stream Who verwendet die offizielle <strong>Spotify Web API</strong>. Wenn Sie sich über Spotify anmelden, werden Sie zur Autorisierung an Spotify weitergeleitet. Dabei gelten ausschließlich die <strong>Datenschutzbestimmungen von Spotify</strong>:</p>
+                <p>👉 <a href="https://www.spotify.com/at/legal/privacy-policy/" target="_blank" style="color: var(--accent);">Spotify Datenschutzerklärung</a></p>
+                <p>Wir speichern keine Spotify-Zugangsdaten (Passwörter, Tokens länger als eine Spielsession). Die erhaltenen Daten (Top-Tracks, Anzeigename) werden nur während der aktiven Spielrunde im Arbeitsspeicher vorgehalten.</p>
+            </div>
+        </div>
+
+        <!-- 6. Speicherdauer -->
+        <div class="section">
+            <h2>6. Wie lange wir Daten speichern</h2>
+            <div class="info-block">
+                <ul>
+                    <li><strong>Spieldaten (Punkte, Rundenverlauf):</strong> Werden nach Ende der Lobby gelöscht (maximal 24 Stunden)</li>
+                    <li><strong>Server-Logs (IP-Adressen):</strong> Werden nach 7 Tagen automatisch anonymisiert</li>
+                    <li><strong>Session-Daten (Cookies/LocalStorage):</strong> Nur für die Dauer der aktiven Browsersitzung</li>
+                </ul>
+                <p>Es findet keine dauerhafte Speicherung von Spotify-Daten oder Spielverläufen statt.</p>
+            </div>
+        </div>
+
+        <!-- 7. Ihre Rechte -->
+        <div class="section">
+            <h2>7. Ihre Rechte als betroffene Person</h2>
+            <div class="info-block">
+                <p>Nach der DSGVO haben Sie folgende Rechte – auch als Spieler eines studentischen Projekts:</p>
+                <ul>
+                    <li><strong>Auskunft:</strong> Sie können erfragen, welche Daten über Sie gespeichert sind</li>
+                    <li><strong>Berichtigung:</strong> Sie können falsche Daten korrigieren lassen</li>
+                    <li><strong>Löschung:</strong> Sie können die Löschung Ihrer Daten verlangen ("Recht auf Vergessenwerden")</li>
+                    <li><strong>Einschränkung:</strong> Sie können die weitere Verarbeitung untersagen</li>
+                    <li><strong>Widerspruch:</strong> Sie können der Verarbeitung widersprechen</li>
+                    <li><strong>Datenübertragbarkeit:</strong> Sie können Ihre Daten in einem maschinenlesbaren Format erhalten</li>
+                </ul>
+                <p>Kontaktieren Sie uns dazu unter: <strong>e.hartmann@students.htl-leonding.ac.at</strong></p>
+            </div>
+        </div>
+
+        <!-- 8. Keine Weitergabe an Dritte -->
+        <div class="section">
+            <h2>8. Weitergabe von Daten</h2>
+            <div class="info-block">
+                <p>Eine Weitergabe Ihrer persönlichen Daten an Dritte erfolgt <strong>nicht</strong>, außer:</p>
+                <ul>
+                    <li>An Spotify im Rahmen der API-Abfrage (siehe Punkt 5)</li>
+                    <li>Wenn wir gesetzlich dazu verpflichtet sind (z.B. durch Gerichtsbeschluss)</li>
+                </ul>
+                <p>Es findet keine Datenweitergabe zu Werbezwecken oder an kommerzielle Dritte statt.</p>
+            </div>
+        </div>
+
+        <!-- 9. Keine Cookies (oder nur technisch) -->
+        <div class="section">
+            <h2>9. Cookies & Local Storage</h2>
+            <div class="info-block">
+                <p>Stream Who verwendet <strong>keine Tracking-Cookies</strong> von Drittanbietern. Es können jedoch technisch notwendige Session-Daten im Local Storage Ihres Browsers abgelegt werden (z.B. Ihr Spielername oder die Lobby-ID). Diese Daten verlassen Ihren Browser nicht und werden nach Spielende nicht ausgewertet.</p>
+                <p>Sie können den Local Storage jederzeit über die Browser-Einstellungen löschen.</p>
+            </div>
+        </div>
+
+        <!-- 10. Änderungen -->
+        <div class="section">
+            <h2>10. Änderungen dieser Datenschutzerklärung</h2>
+            <div class="info-block">
+                <p>Da es sich um ein studentisches Projekt handelt, kann sich diese Datenschutzerklärung bei wesentlichen Änderungen des Spiels aktualisieren. Die jeweils aktuelle Version finden Sie immer unter dieser URL.</p>
+                <p><strong>Stand:</strong> Juni 2026</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- 11. Beschwerderecht -->
+        <div class="section">
+            <h2>11. Beschwerderecht bei der Aufsichtsbehörde</h2>
+            <div class="info-block">
+                <p>Wenn Sie der Meinung sind, dass die Verarbeitung Ihrer Daten gegen die DSGVO verstößt, haben Sie das Recht, sich bei der österreichischen Datenschutzbehörde zu beschweren:</p>
+                <p><strong>Österreichische Datenschutzbehörde (DSB)</strong><br>
+                Barichgasse 40-42, 1030 Wien<br>
+                <a href="https://www.dsb.gv.at" target="_blank" style="color: var(--accent);">www.dsb.gv.at</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="datenschutz-footer">
+        <p>Stream Who — Ein Projekt der HTL Leonding, 3AHITM, Schuljahr 2025/26</p>
+        <p style="margin-top: 0.3rem;">
+            <a href="impressum.html">Impressum</a> • 
+            <a href="index.html">Zum Spiel</a>
+        </p>
+    </div>
+</div>
+
+<div class="back-link">
+    <a href="index.php">← Zurück zur Startseite</a>
+</div>
+
+</body>
+</html>

@@ -125,7 +125,7 @@ startSession();
     </main>
 
     <footer>
-        <a href="?">Impressum</a> | 
+        <a href="impressum.html">Impressum</a> | 
         <?php if (!empty($_SESSION['access_token'])): ?>
             <a href="logout.php">Log Out</a>
         <?php else: ?>
