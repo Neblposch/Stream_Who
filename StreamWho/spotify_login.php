@@ -7,7 +7,7 @@ $verifier = generateCodeVerifier();
 $challenge = generateCodeChallenge($verifier);
 $_SESSION['code_verifier'] = $verifier;
 
-$scope = 'streaming user-read-email user-read-private';
+$scope = 'streaming user-read-email user-read-private user-top-read';
 $params = [
     'client_id' => SPOTIFY_CLIENT_ID,
     'response_type' => 'code',
