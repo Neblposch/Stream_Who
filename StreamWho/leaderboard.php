@@ -31,6 +31,7 @@ if ($roomCode === '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>StreamWho - Leaderboard</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css">
 </head>
 <body class="leaderboard-page">
     <div class="container leaderboard-container">

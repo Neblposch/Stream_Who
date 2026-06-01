@@ -38,6 +38,7 @@ if ($roomCode === '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>StreamWho - Game</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css">
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <style>
         .room-info {
