@@ -1,8 +1,18 @@
 <?php
+// DUMMY VERSION - No Spotify API, no real connections
+// Works with dummy functions.php and game_logic.php
+
 require_once __DIR__ . '/functions.php';
+
 startSession();
 requireLogin();
 
+$spotifyUser = $_SESSION['spotify_user'] ?? [
+    'id' => $_SESSION['user_id'] ?? 'dummy_player_1',
+    'display_name' => $_SESSION['user_name'] ?? 'TestPlayer',
+    'images' => []
+];
+$currentUserId = $spotifyUser['id'] ?? 'dummy_player_1';
 $roomCode = isset($_GET['room']) ? normalizeRoomCode($_GET['room']) : '';
 $roomData = null;
 $roomError = '';
@@ -18,18 +28,29 @@ if ($roomCode === '') {
     } else {
         $_SESSION['current_room'] = $roomCode;
     }
+
+    if ($roomData && (($roomData['game']['status'] ?? 'idle') === 'ended')) {
+        header('Location: leaderboard.php?room=' . urlencode($roomCode));
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>StreamWho - Game</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .room-info {
             transition: all 0.3s ease;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 2vh 2vw;
         }
         .room-info.hide-players .player-list-container {
             display: none;
@@ -44,7 +65,8 @@ if ($roomCode === '') {
             top: 10px;
             z-index: 100;
             background: rgba(18, 32, 53, 0.95) !important;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
         }
         .room-code-large {
             font-size: 2.5vh;
@@ -75,6 +97,39 @@ if ($roomCode === '') {
             margin: 0 auto;
             max-width: 90vw;
         }
+        .overlay {
+            background: transparent;
+        }
+        body.background {
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            transition: background-image 0.3s ease;
+        }
+        /* Hide track image initially */
+        .cover-placeholder {
+            width: auto;
+            height: 50vh;
+            border-radius: 2.8vh;
+            background: linear-gradient(135deg, rgba(122, 190, 255, 0.1), rgba(255, 255, 255, 0.05));
+            margin: 0 auto 2vh;
+            margin-left: 20%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 1.2vh;
+        }
+        #trackCover {
+            display: none;
+        }
+        .cover-placeholder.active-track #trackCover {
+            display: block;
+        }
+        .cover-placeholder.active-track .placeholder-text {
+            display: none;
+        }
     </style>
 </head>
 <body id="gameBody" class="background">
@@ -85,7 +140,7 @@ if ($roomCode === '') {
             <a href="lobby.php">Back to Lobby</a>
         </div>
     <?php else: ?>
-        <div class="container room-info" id="roomInfo">
+        <div class="room-info" id="roomInfo">
             <div class="room-header">
                 <h2>Room: <span id="roomCodeDisplay"><?= htmlspecialchars($roomCode) ?></span></h2>
                 <div class="room-code-large" id="roomCodeLarge" style="display: none;"><?= htmlspecialchars($roomCode) ?></div>
@@ -108,8 +163,11 @@ if ($roomCode === '') {
             </div>
         </div>
 
-        <div id="gameCard">
-            <img id="trackCover" class="cover" src="test.jpg" alt="Track Cover">
+        <div id="gameCard" class="card">
+            <div id="coverContainer" class="cover-placeholder">
+                <div class="placeholder-text">Waiting for game to start...</div>
+                <img id="trackCover" class="cover" src="test.jpg" alt="Track Cover">
+            </div>
             <div id="trackTitle" class="title"></div>
             <div id="trackArtist" class="artist"></div>
             <div id="players" class="players"></div>
@@ -120,25 +178,31 @@ if ($roomCode === '') {
             </div>
             <div id="controls" class="controls">
                 <button id="startBtn" class="button control" style="display:none;">Start Game</button>
+                <button id="playTrackBtn" class="button control">Play selected song</button>
                 <button id="nextBtn" class="button control">Next Round</button>
+                <button id="endGameBtn" class="button control">End Game</button>
             </div>
             <div id="feedback" class="feedback"></div>
         </div>
 
         <script>
+            // Initialize game state WITHOUT any track data
             let gameState = {
                 players: <?= json_encode($roomData['players']) ?>,
                 scores: <?= json_encode($roomData['game']['scores'] ?? []) ?>,
                 status: '<?= $roomData['game']['status'] ?? 'idle' ?>',
-                track: <?= json_encode($roomData['game']['track'] ?? null) ?>,
+                track: null, // Start with null track - don't load anything initially
                 my_guess: null,
-                is_host: <?= ($_SESSION['user_id'] ?? '') === ($roomData['host_id'] ?? '') ? 'true' : 'false' ?>,
+                is_host: <?= (($spotifyUser['id'] ?? '') === ($roomData['host_id'] ?? '')) ? 'true' : 'false' ?>,
                 round: <?= $roomData['game']['round_number'] ?? 0 ?>
             };
+            const roomCode = <?= json_encode($roomCode) ?>;
             
             let currentAudio = null;
             let currentTrackId = null;
+            let previewFailed = false;
             let hasScrolledToGame = false;
+            let stateUpdateInterval = null;
 
             function stopPreview() {
                 if (currentAudio) {
@@ -148,27 +212,43 @@ if ($roomCode === '') {
                 }
             }
 
-            function playPreview(track) {
-                if (!track || !track.preview_url) {
+            function playPreview(track, force = false) {
+                // ONLY play preview if game is active AND track exists
+                if (gameState.status !== 'active' || !track || !track.preview_url) {
                     stopPreview();
                     return;
                 }
+
+                if (previewFailed && !force) {
+                    return;
+                }
+
                 if (currentTrackId === track.id && currentAudio && !currentAudio.paused) {
                     return;
                 }
+
                 stopPreview();
                 currentTrackId = track.id;
                 currentAudio = new Audio(track.preview_url);
                 currentAudio.volume = 0.4;
-                currentAudio.play().catch(() => {});
+                currentAudio.play().catch(() => {
+                    previewFailed = true;
+                    stopPreview();
+                });
             }
 
             async function fetchState() {
                 try {
-                    const response = await fetch('game_logic.php?action=state');
+                    const response = await fetch('game_logic.php?action=state&room=' + encodeURIComponent(roomCode));
                     const data = await response.json();
                     if (data && data.success !== false) {
+                        const previousStatus = gameState.status;
                         gameState = { ...gameState, ...data };
+                        
+                        // Stop preview and clear track display if game is not active
+                        if (gameState.status !== 'active') {
+                            stopPreview();
+                        }
                     }
                     render();
                 } catch (error) {
@@ -177,36 +257,105 @@ if ($roomCode === '') {
             }
 
             async function startGame() {
-                if (!gameState.is_host) return;
-                const response = await fetch('game_logic.php?action=start', { method: 'POST' });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
+                if (!gameState.is_host) {
+                    console.log('Not host, cannot start game');
+                    return;
                 }
-                render();
+                
+                if (gameState.status !== 'idle' && gameState.status !== 'ended') {
+                    console.log('Game already started or ended');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('game_logic.php?action=start&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+                    const data = await response.json();
+                    if (data && data.success !== false) {
+                        gameState = { ...gameState, ...data };
+                        render();
+                        // Start the first round after a short delay
+                        setTimeout(() => {
+                            nextRound();
+                        }, 500);
+                    } else {
+                        console.error('Failed to start game:', data.message);
+                        document.getElementById('feedback').textContent = 'Failed to start game: ' + (data.message || 'Unknown error');
+                    }
+                } catch (error) {
+                    console.error('Error starting game:', error);
+                    document.getElementById('feedback').textContent = 'Error starting game. Please try again.';
+                }
             }
 
             async function nextRound() {
-                if (!gameState.is_host) return;
-                const response = await fetch('game_logic.php?action=next_round', { method: 'POST' });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
+                if (!gameState.is_host) {
+                    return;
                 }
-                render();
+
+                if (gameState.status === 'ended') {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('game_logic.php?action=next_round&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+                    const data = await response.json();
+                    if (data && data.success !== false) {
+                        gameState = { ...gameState, ...data };
+                        // Reset preview flag for new track
+                        previewFailed = false;
+                        // Clear any existing feedback message
+                        if (gameState.status === 'active') {
+                            document.getElementById('feedback').style.color = '';
+                        }
+                    } else {
+                        console.error('Failed to start next round:', data.message);
+                        document.getElementById('feedback').textContent = 'Failed to start round: ' + (data.message || 'Unknown error');
+                    }
+                    render();
+                } catch (error) {
+                    console.error('Error starting next round:', error);
+                    document.getElementById('feedback').textContent = 'Error starting next round. Please try again.';
+                }
+            }
+
+            async function endGame() {
+                if (!gameState.is_host || gameState.status === 'ended') {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('game_logic.php?action=end_game&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+                    const data = await response.json();
+                    if (data && data.success !== false) {
+                        gameState = { ...gameState, ...data };
+                        stopPreview();
+                        window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
+                        return;
+                    }
+                    render();
+                } catch (error) {
+                    console.error('Error ending game:', error);
+                }
             }
 
             async function submitGuess(playerId) {
-                if (gameState.status !== 'active' || gameState.my_guess) return;
+                if (gameState.status !== 'active' || gameState.my_guess) {
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append('guess', playerId);
-                const response = await fetch('game_logic.php?action=guess', { method: 'POST', body: formData });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
-                    showFeedback(data.correct);
+                try {
+                    const response = await fetch('game_logic.php?action=guess&room=' + encodeURIComponent(roomCode), { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (data && data.success !== false) {
+                        gameState = { ...gameState, ...data };
+                        showFeedback(data.correct);
+                    }
+                    render();
+                } catch (error) {
+                    console.error('Error submitting guess:', error);
                 }
-                render();
             }
 
             function scrollToGameCard() {
@@ -238,7 +387,7 @@ if ($roomCode === '') {
                     }
                     roomInfoDiv.classList.add('hide-players');
                     
-                    if (!hasScrolledToGame) {
+                    if (!hasScrolledToGame && (gameState.status === 'active' || gameState.status === 'revealed')) {
                         setTimeout(() => {
                             scrollToGameCard();
                             hasScrolledToGame = true;
@@ -259,22 +408,77 @@ if ($roomCode === '') {
                 }
             }
 
-            function render() {
-                const cover = gameState.track?.cover || '';
+            function updateTrackDisplay() {
+                const coverContainer = document.getElementById('coverContainer');
                 const coverImg = document.getElementById('trackCover');
+                const placeholderText = coverContainer?.querySelector('.placeholder-text');
                 
-                if (cover) {
-                    coverImg.src = cover;
-                    coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
+                // Only show track content when game is active AND we have a track
+                const hasActiveTrack = gameState.status === 'active' && gameState.track && gameState.track.cover;
+                
+                if (hasActiveTrack) {
+                    // Show actual track
+                    coverContainer.classList.add('active-track');
+                    if (coverImg) {
+                        coverImg.src = gameState.track.cover;
+                        coverImg.alt = gameState.track.title ? `${gameState.track.title} cover` : 'Track Cover';
+                        coverImg.style.display = 'block';
+                        document.body.style.backgroundImage = `url(${gameState.track.cover})`;
+                    }
+                    if (placeholderText) {
+                        placeholderText.style.display = 'none';
+                    }
                 } else {
-                    coverImg.src = 'test.jpg';
-                    coverImg.alt = 'Track Cover';
+                    // Show placeholder
+                    coverContainer.classList.remove('active-track');
+                    if (coverImg) {
+                        coverImg.style.display = 'none';
+                        document.body.style.backgroundImage = 'none';
+                    }
+                    if (placeholderText) {
+                        placeholderText.style.display = 'flex';
+                        if (gameState.status === 'waiting_to_start') {
+                            placeholderText.textContent = 'Ready to start!';
+                        } else if (gameState.status === 'idle') {
+                            placeholderText.textContent = 'Waiting for host to start game...';
+                        } else if (gameState.status === 'revealed') {
+                            placeholderText.textContent = 'Round complete! Next round coming up...';
+                        } else {
+                            placeholderText.textContent = 'Waiting for game to start...';
+                        }
+                    }
                 }
-                
-                document.getElementById('trackTitle').textContent = gameState.track?.title || '';
-                document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
+            }
 
-                if (gameState.status === 'active' && gameState.track) {
+            function render() {
+                const isGameEnded = gameState.status === 'ended';
+                const gameCard = document.getElementById('gameCard');
+                
+                if (isGameEnded) {
+                    stopPreview();
+                    document.body.style.backgroundImage = 'none';
+                    gameCard.style.display = 'none';
+                    window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
+                    return;
+                }
+
+                gameCard.style.display = 'block';
+                
+                // Update track display based on game state
+                updateTrackDisplay();
+                
+                // Update text content (only show if game is active)
+                const hasActiveTrack = gameState.status === 'active' && gameState.track;
+                document.getElementById('trackTitle').textContent = hasActiveTrack ? (gameState.track.title || 'Unknown track') : '';
+                document.getElementById('trackArtist').textContent = hasActiveTrack ? (gameState.track.artist || '') : '';
+
+                const playTrackBtn = document.getElementById('playTrackBtn');
+                const hasPreview = hasActiveTrack && Boolean(gameState.track?.preview_url);
+                playTrackBtn.disabled = !hasPreview;
+                playTrackBtn.textContent = hasPreview ? 'Play selected song' : (gameState.status === 'active' ? 'Preview unavailable' : 'Wait for game to start');
+
+                // Only play preview if game is active and we have a track
+                if (gameState.status === 'active' && gameState.track && !previewFailed) {
                     playPreview(gameState.track);
                 } else {
                     stopPreview();
@@ -287,11 +491,12 @@ if ($roomCode === '') {
                     btn.className = 'button player-btn';
                     btn.textContent = player.name;
                     btn.onclick = () => submitGuess(player.id);
+                    btn.disabled = (gameState.status !== 'active' || gameState.my_guess !== null);
                     playersDiv.appendChild(btn);
                 });
 
-                document.getElementById('round').textContent = `Round: ${gameState.round ?? 0}`;
-                document.getElementById('timer').textContent = `Time left: ${gameState.time_left ?? 0}s`;
+                document.getElementById('round').textContent = gameState.status === 'active' ? `Round: ${gameState.round ?? 0}` : '';
+                document.getElementById('timer').textContent = (gameState.status === 'active' && gameState.time_left > 0) ? `Time left: ${gameState.time_left}s` : '';
 
                 const scoresDiv = document.getElementById('scores');
                 scoresDiv.innerHTML = 'Scores: ';
@@ -302,44 +507,92 @@ if ($roomCode === '') {
                     }
                 });
 
-                const canGuess = gameState.status === 'active' && !gameState.my_guess;
-                document.querySelectorAll('.player-btn').forEach(btn => {
-                    btn.disabled = !canGuess;
-                });
-
                 const startBtn = document.getElementById('startBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                startBtn.style.display = gameState.is_host ? 'inline-block' : 'none';
-                startBtn.disabled = !gameState.is_host || gameState.status === 'active';
-                nextBtn.disabled = !gameState.is_host || gameState.status !== 'revealed';
+                const endGameBtn = document.getElementById('endGameBtn');
+                const isHost = Boolean(gameState.is_host);
 
-                if (gameState.status === 'active') {
-                    document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted.' : 'Guess the player who listened to this track the most.';
-                    document.getElementById('feedback').style.color = '';
-                } else if (gameState.status === 'revealed') {
-                    const correctPlayer = (gameState.players || []).find(player => player.id === gameState.correct_player_id);
-                    document.getElementById('feedback').textContent = correctPlayer ? `${correctPlayer.name} was the source player.` : 'Round complete.';
-                    document.getElementById('feedback').style.color = 'white';
-                } else {
-                    document.getElementById('feedback').textContent = 'Waiting for the host to start the next round.';
-                    document.getElementById('feedback').style.color = '';
+                // Show start button only when game is idle (not started)
+                startBtn.style.display = isHost && gameState.status === 'idle' ? 'inline-block' : 'none';
+                
+                // Show next button when game is revealed or waiting to start
+                nextBtn.style.display = isHost && (gameState.status === 'revealed' || gameState.status === 'waiting_to_start') ? 'inline-block' : 'none';
+                
+                // Enable next button text
+                if (nextBtn.style.display === 'inline-block') {
+                    nextBtn.textContent = gameState.status === 'waiting_to_start' ? 'Start First Round' : 'Next Round';
                 }
                 
+                // Show end game button during active gameplay
+                endGameBtn.style.display = isHost && (gameState.status === 'active' || gameState.status === 'revealed') ? 'inline-block' : 'none';
+
+                if (gameState.status === 'active') {
+                    document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted! Waiting for others...' : 'Guess which player listened to this track the most!';
+                    if (!gameState.my_guess) {
+                        document.getElementById('feedback').style.color = '';
+                    }
+                } else if (gameState.status === 'revealed') {
+                    const correctPlayer = (gameState.players || []).find(player => player.id === gameState.correct_player_id);
+                    document.getElementById('feedback').textContent = correctPlayer ? `Round complete! ${correctPlayer.name} listened to this track the most.` : 'Round complete.';
+                    document.getElementById('feedback').style.color = '#7ABEFF';
+                } else if (gameState.status === 'waiting_to_start') {
+                    document.getElementById('feedback').textContent = 'Game is ready! Click "Start First Round" to begin!';
+                    document.getElementById('feedback').style.color = '#7ABEFF';
+                } else {
+                    document.getElementById('feedback').textContent = gameState.is_host ? 'Click "Start Game" to begin!' : 'Waiting for the host to start the game...';
+                    document.getElementById('feedback').style.color = '';
+                }
+
                 updateRoomDisplay();
             }
 
             function showFeedback(correct) {
                 const feedback = document.getElementById('feedback');
-                feedback.textContent = correct ? 'Correct!' : 'Wrong!';
+                feedback.textContent = correct ? 'CORRECT! +1 point!' : 'WRONG! Better luck next round!';
                 feedback.style.color = correct ? '#7ABEFF' : '#FF6B6B';
+                setTimeout(() => {
+                    if (gameState.status === 'active') {
+                        feedback.textContent = 'Guess submitted! Waiting for others...';
+                        feedback.style.color = '';
+                    }
+                }, 2000);
             }
 
-            document.getElementById('startBtn').onclick = startGame;
-            document.getElementById('nextBtn').onclick = nextRound;
+            // Set up event listeners
+            const startBtnElement = document.getElementById('startBtn');
+            const nextBtnElement = document.getElementById('nextBtn');
+            const endGameBtnElement = document.getElementById('endGameBtn');
+            const playTrackBtnElement = document.getElementById('playTrackBtn');
+            
+            if (startBtnElement) {
+                startBtnElement.onclick = startGame;
+            }
+            if (nextBtnElement) {
+                nextBtnElement.onclick = nextRound;
+            }
+            if (endGameBtnElement) {
+                endGameBtnElement.onclick = endGame;
+            }
+            if (playTrackBtnElement) {
+                playTrackBtnElement.onclick = () => {
+                    previewFailed = false;
+                    playPreview(gameState.track, true);
+                };
+            }
 
+            // Initial render and start polling
             render();
             fetchState();
-            setInterval(fetchState, 3000);
+            // Poll every 2 seconds for state updates
+            stateUpdateInterval = setInterval(fetchState, 2000);
+            
+            // Clean up interval on page unload
+            window.addEventListener('beforeunload', () => {
+                if (stateUpdateInterval) {
+                    clearInterval(stateUpdateInterval);
+                }
+                stopPreview();
+            });
         </script>
     <?php endif; ?>
 </body>

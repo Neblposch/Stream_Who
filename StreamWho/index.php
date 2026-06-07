@@ -13,7 +13,7 @@ startSession();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stream Who</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="mobile.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <header class="header">
@@ -124,14 +124,16 @@ startSession();
             </div>
         </section>
     </main>
-
+    <script>
+        document.querySelectorAll('.cardflip').forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('tapped');
+        });
+        });
+    </script>
     <footer>
         <a href="impressum.html">Impressum</a> | 
-        <?php if (!empty($_SESSION['access_token'])): ?>
-            <a href="logout.php">Log Out</a>
-        <?php else: ?>
-            <a href="spotify_login.php">Log In</a>
-        <?php endif; ?>
+        <a href="datenschutz.html">Datenschutz</a>
     </footer>
 </body>
 </html>

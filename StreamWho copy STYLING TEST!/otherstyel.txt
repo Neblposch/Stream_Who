@@ -132,7 +132,7 @@ header a {
   margin-top: 1.2vh;
   color: var(--muted);
   text-decoration: none;
-  font-size: clamp(2.5vh, 2.5vw, 4.1vh);
+  font-size: clamp(2vh, 1.8vw, 2.5vh);
   letter-spacing: 0;
 }
 
@@ -172,14 +172,6 @@ footer {
   pointer-events: none;
 }
 
-#log-in-start {
-  width: 10vw;
-  margin-left: 40vw;
-  margin-bottom: 1%;
-  margin-top: 2vh;
-}
-
-#log-in-start button,
 button,
 .button,
 .player-btn,
@@ -194,7 +186,6 @@ button,
   animation: softPulse 4.5s ease-in-out infinite alternate;
 }
 
-#log-in-start button,
 button,
 .control {
   padding: 1.7vh 2.6vw;
@@ -208,16 +199,6 @@ button:hover,
   background: rgba(122, 190, 255, 0.22);
   box-shadow: 0 0 2.4vh rgba(122, 190, 255, 0.18);
   transform: translateY(-0.2vh);
-}
-
-button:disabled,
-.button:disabled,
-.player-btn:disabled,
-.control:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  animation: none;
 }
 
 input {
@@ -256,8 +237,9 @@ input:focus {
   cursor: pointer;
   color: var(--text);
   background: transparent;
-  border: none;
+  border: 0;
   padding: 0;
+  line-height: 1;
 }
 
 .menu-content {
@@ -274,7 +256,7 @@ input:focus {
   box-shadow: 0 2.8vh 8vh rgba(8, 18, 34, 0.35);
 }
 
-.menu:hover .menu-content {
+.menu.open .menu-content {
   display: flex;
 }
 
@@ -294,7 +276,7 @@ input:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
+    background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
     radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 16%),
     linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 35%, var(--bg-soft) 100%);
   position: relative;
@@ -305,8 +287,8 @@ input:focus {
   content: '';
   position: absolute;
   inset: 0;
+  background: linear-gradient(180deg, rgba(20, 30, 48, 0.16), rgba(20, 30, 48, 0.9));
   pointer-events: none;
-  
 }
 
 .container {
@@ -419,52 +401,38 @@ h2 {
   box-shadow: inset 0 0 0.75vh rgba(255, 255, 255, 0.12), 0 1.8vh 4.2vh rgba(24, 72, 126, 0.15);
 }
 
-.username {
-  font-size: 2vh;
+.username{
+    font-size:2vh;
 }
-
-.user-info {
-  display: grid;
+.user-info{
+    display: grid;
   grid-template-columns: repeat(2, 1fr);
   margin-left: -15vw;
 }
-
-.user-info img {
-  height: 60px;
+.user-info img{
+    height: 60px;
   border-radius: 30px;
   justify-self: right;
 }
-
-.user-info h2 {
-  font-size: clamp(3.2vh, 3.5vw, 5vh);
+.user-info h2{
+    font-size: clamp(3.2vh, 3.5vw, 5vh);
   font-weight: 600;
   justify-self: left;
   margin-left: 5%;
   margin-top: 2.5vh;
   width: 110%;
 }
+/*==Game==*/
 
-/* ============================================ */
-/* GAME PAGE STYLING - FROM OLD WORKING VERSION */
-/* ============================================ */
+/* Game Page Styles */
 
 .background {
   position: relative;
   min-height: 100vh;
   background: rgba(18, 32, 53, 0.75);
-  border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(1.7px);
   -webkit-backdrop-filter: blur(1.7px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-#gameBody{
-  background: var(--bg-deep);
-  position: relative;
-  min-height: 100vh;
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
@@ -476,7 +444,7 @@ h2 {
   width: 90vw;
 }
 
-#gameCard {
+#gameCard{
   width: 50%;
   margin-left: 25%;
   margin-top: 2vh;
@@ -485,13 +453,13 @@ h2 {
   padding: 3vh 3vw;
   border-radius: 16px;
 }
-
 .cover {
   width: auto;
-  height: 45vh;
+  height: 50vh;
   border-radius: 2.8vh;
   background: rgba(255, 255, 255, 0.08);
   margin: 0 auto 2vh;
+  margin-left: 10vw;
 }
 
 .title {
@@ -508,9 +476,6 @@ h2 {
 }
 
 .players {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: 0.85vw;
   text-align: center;
   margin-top: 1vh;
@@ -528,20 +493,13 @@ h2 {
   font-size: 1.6vh;
 }
 
-.timer {
-  font-size: 1.6vh;
-}
-
 .scores {
   font-size: 1.45vh;
   color: var(--muted);
 }
 
 .controls {
-  display: flex;
   flex-wrap: wrap;
-  gap: 1vh;
-  justify-content: center;
 }
 
 .control {
@@ -555,160 +513,6 @@ h2 {
   margin-top: 3vh;
   text-align: center;
 }
-
-/* Player list centering - from old version */
-.player-list-container ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-}
-
-.player-list-container li {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* Room info styling - from old version */
-.room-info {
-  transition: all 0.3s ease;
-}
-
-.room-info.hide-players .player-list-container {
-  display: none;
-}
-
-.room-info.hide-players {
-  text-align: center;
-  padding: 1vh 2vw !important;
-  margin: 0 auto 2vh auto !important;
-  max-width: 300px;
-  border-radius: 50px !important;
-  position: sticky;
-  top: 10px;
-  z-index: 100;
-  background: rgba(18, 32, 53, 0.95) !important;
-  backdrop-filter: blur(5px);
-}
-
-.room-code-large {
-  font-size: 2.5vh;
-  letter-spacing: 0.3vw;
-  background: rgba(255, 255, 255, 0.1);
-  display: inline-block;
-  padding: 0.8vh 2vw;
-  border-radius: 50px;
-  margin-top: 0;
-}
-
-.room-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.room-header h2 {
-  margin-bottom: 0.5vh;
-  font-size: 1.8vh;
-}
-
-#roomCodeDisplay {
-  font-size: 1.8vh;
-}
-
-/* ============================================ */
-/* FLIP CARDS (REVIEWS) - UNCHANGED */
-/* ============================================ */
-
-.slider {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  gap: 2%;
-  width: 100%;
-  padding: 5vh 2%;
-}
-
-.cardflip {
-  flex: 0 0 23%;
-  height: 40vh;
-  scroll-snap-align: start;
-  perspective: 100vw;
-}
-
-.flip {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.8s;
-}
-
-.cardflip:hover .flip {
-  transform: rotateY(180deg);
-}
-
-.front,
-.back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  border-radius: 16px;
-}
-
-.front {
-  background: rgba(18, 32, 53, 0.68);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 0.12vw solid rgba(122, 190, 255, 0.14);
-  color: var(--text, #E6F3FF);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.back {
-  background: rgba(18, 32, 53, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 0.12vw solid rgba(122, 190, 255, 0.14);
-  color: var(--text, #E6F3FF);
-  transform: rotateY(180deg);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  padding: 2vw;
-}
-
-.slider::-webkit-scrollbar {
-  height: 8px;
-}
-
-.slider::-webkit-scrollbar-track {
-  background: rgba(18, 32, 53, 0.3);
-  border-radius: 10px;
-}
-
-.slider::-webkit-scrollbar-thumb {
-  background: rgba(122, 190, 255, 0.5);
-  border-radius: 10px;
-}
-
-.slider::-webkit-scrollbar-thumb:hover {
-  background: rgba(122, 190, 255, 0.8);
-}
-
-#reviews h3 {
-  text-align: center;
-  margin-top: 5vh;
-}
-
-
 
 .leaderboard-page {
   min-height: 100vh;
@@ -804,51 +608,96 @@ h2 {
 }
 
 
-
-/* ============================================ */
-/* RESPONSIVE - FROM OLD VERSION */
-/* ============================================ */
-
-@media (max-width: 90vw) {
-  header {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .menu {
-    top: 1.5vh;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .player-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .container {
-    padding: 3vh 2vw;
-  }
-
-  #gameCard {
-    width: 90%;
-    margin-left: 5%;
-  }
-  
-  .cover {
-    margin-left: 0;
-    width: 100%;
-    height: auto;
-    max-height: 40vh;
-    object-fit: cover;
-  }
-  
-  .control {
-    min-width: auto;
-    padding: 1.7vh 4vw;
-  }
+/* FLIP */
+.slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 2%;
+  width: 100%;
+  padding: 5vh 2%;
 }
 
-@media (max-width: 60vw) {
+.cardflip {
+  flex: 0 0 23%;
+  height: 40vh;
+  scroll-snap-align: start;
+  perspective: 100vw;
+}
+
+.flip {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+}
+
+.cardflip:hover .flip {
+  transform: rotateY(180deg);
+}
+
+.front,
+.back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  border-radius: 16px;
+}
+
+/* Front - Glass Effect */
+.front {
+  background: rgba(18, 32, 53, 0.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.12vw solid rgba(122, 190, 255, 0.14);
+  color: var(--text, #E6F3FF);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Back - Glass Effect */
+.back {
+  background: rgba(18, 32, 53, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.12vw solid rgba(122, 190, 255, 0.14);
+  color: var(--text, #E6F3FF);
+  transform: rotateY(180deg);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  padding: 2vw;
+}
+
+/* Optional: Scrollbar Styling passend zum Design */
+.slider::-webkit-scrollbar {
+  height: 8px;
+}
+
+.slider::-webkit-scrollbar-track {
+  background: rgba(18, 32, 53, 0.3);
+  border-radius: 10px;
+}
+
+.slider::-webkit-scrollbar-thumb {
+  background: rgba(122, 190, 255, 0.5);
+  border-radius: 10px;
+}
+
+.slider::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 190, 255, 0.8);
+}
+
+#reviews h3{
+  text-align: center;
+  margin-top: 5vh;
+}
+
+/*@media (max-width: 60vw) {
   h1 {
     font-size: 3.5vh;
   }
@@ -860,11 +709,7 @@ h2 {
   #info {
     margin-top: 3vh;
   }
-}
-
-/* ============================================ */
-/* ANIMATIONS - UNCHANGED */
-/* ============================================ */
+}*/
 
 @keyframes fadeInDown {
   from {
@@ -884,4 +729,24 @@ h2 {
   to {
     box-shadow: 0 0 2.8vh rgba(122, 190, 255, 0.2);
   }
+}
+
+
+
+
+/* Game page background - default Gradient */
+body.background {
+    background: radial-gradient(circle at top left, rgba(122, 190, 255, 0.08), transparent 18%),
+                radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.05), transparent 16%),
+                linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 35%, var(--bg-soft) 100%);
+    background-attachment: fixed;
+    transition: background-image 0.3s ease;
+}
+
+/* Wenn Track-Cover gesetzt wird */
+body.background.track-active {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 }

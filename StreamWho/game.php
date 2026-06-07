@@ -104,12 +104,12 @@ if ($roomCode === '') {
         }
         /* Hide track image initially */
         .cover-placeholder {
-            width: auto;
+            width: 60%;
             height: 50vh;
             border-radius: 2.8vh;
             background: linear-gradient(135deg, rgba(122, 190, 255, 0.1), rgba(255, 255, 255, 0.05));
             margin: 0 auto 2vh;
-            margin-left: 10vw;
+            margin-left: 20%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -127,7 +127,7 @@ if ($roomCode === '') {
         }
     </style>
 </head>
-<body id="gameBody" class="background">
+<body id="gameBody">
     <?php if ($roomError): ?>
         <div class="container">
             <h1>Error</h1>
@@ -403,7 +403,7 @@ if ($roomCode === '') {
                 }
             }
 
-            function updateTrackDisplay() {
+           function updateTrackDisplay() {
                 const coverContainer = document.getElementById('coverContainer');
                 const coverImg = document.getElementById('trackCover');
                 const placeholderText = coverContainer?.querySelector('.placeholder-text');
@@ -418,17 +418,29 @@ if ($roomCode === '') {
                         coverImg.src = gameState.track.cover;
                         coverImg.alt = gameState.track.title ? `${gameState.track.title} cover` : 'Track Cover';
                         coverImg.style.display = 'block';
+                        
+                        // Background image mit richtigen Einstellungen
                         document.body.style.backgroundImage = `url(${gameState.track.cover})`;
+                        document.body.style.backgroundSize = 'cover';
+                        document.body.style.backgroundPosition = 'center';
+                        document.body.style.backgroundRepeat = 'no-repeat';
+                        document.body.style.backgroundAttachment = 'fixed';
                     }
                     if (placeholderText) {
                         placeholderText.style.display = 'none';
                     }
                 } else {
-                    // Show placeholder
+                    // Show placeholder - Hintergrund zurücksetzen
                     coverContainer.classList.remove('active-track');
                     if (coverImg) {
                         coverImg.style.display = 'none';
-                        document.body.style.backgroundImage = 'none';
+                        
+                        // Hintergrund komplett zurücksetzen
+                        document.body.style.backgroundImage = '';
+                        document.body.style.backgroundSize = '';
+                        document.body.style.backgroundPosition = '';
+                        document.body.style.backgroundRepeat = '';
+                        document.body.style.backgroundAttachment = '';
                     }
                     if (placeholderText) {
                         placeholderText.style.display = 'flex';

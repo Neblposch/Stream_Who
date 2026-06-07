@@ -1,0 +1,467 @@
+@media screen and (max-width: 600px) {
+
+  /* ===== GLOBAL MOBILE ADJUSTMENTS ===== */
+  body {
+    font-size: 14px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Prevent horizontal scroll from any element */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  header h2 {
+    text-align: center;
+    font-size: 18px;
+  }
+
+  header p,
+  header a {
+    font-size: 12px;
+  }
+
+  /* ===== MENU (BURGER) ===== */
+  .menu {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+  }
+
+  .burger {
+    font-size: 28px;
+    background: rgba(10, 18, 34, 0.85);
+    backdrop-filter: blur(8px);
+    padding: 8px 12px;
+    border-radius: 30px;
+    border: 1px solid rgba(122, 190, 255, 0.3);
+  }
+
+  .menu-content {
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    min-width: 200px;
+    background: rgba(20, 30, 48, 0.95);
+    border-radius: 16px;
+    padding: 8px 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .menu-content a {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  /* ===== LOBBY PAGE ===== */
+  .lobby {
+    min-height: 100vh;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Keep the original gradient – do NOT replace with solid color */
+  }
+
+  .container {
+    padding: 24px 16px;
+    gap: 20px;
+    width: 95%;
+    max-width: 95%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(20, 30, 48, 0.55);
+    border: 0.12vw solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+  }
+
+  /* Logo wrapper adjustments */
+  .logo-wrapper {
+    width: 100px !important;
+    height: 100px !important;
+    min-width: 80px;
+    min-height: 80px;
+    max-width: 100px;
+    max-height: 100px;
+    margin: 0 auto !important;
+    display: block;
+  }
+
+  .logo-wrapper .logo,
+  .logo-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media screen and (max-width: 480px) {
+    .logo-wrapper {
+      width: 80px !important;
+      height: 80px !important;
+    }
+  }
+
+  .lobbyHeading {
+    font-size: 32px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .lobby-code {
+    font-size: 12px;
+    padding: 10px 16px;
+    letter-spacing: 2px;
+    text-align: center;
+    display: inline-block;
+    margin: 0 auto;
+  }
+
+  /* ===== INFO BOXES ===== */
+  .small-info-box {
+    width: 90vw;
+    max-width: 90vw;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 16px;
+    font-size: 14px;
+    text-align: center;
+    display: block;
+    position: relative;
+    left: auto;
+    right: auto;
+    background: rgba(20, 30, 48, 0.55);
+    border: 0.12vw solid rgba(255, 255, 255, 0.08);
+  }
+
+  #info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 4vh auto 0;
+    gap: 16px;
+  }
+
+  /* Container images (except avatars) */
+  .container img:not(.avatar):not(.leaderboard-avatar) {
+    max-width: 100px !important;
+    height: auto !important;
+  }
+
+  /* Player grid */
+  .player-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .player {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+
+  .username {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .user-info {
+    grid-template-columns: 1fr;
+    margin-left: 0;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .user-info img {
+    height: 48px;
+    justify-self: center;
+  }
+
+  .user-info h2 {
+    font-size: 18px;
+    margin-left: 0;
+    margin-top: 8px;
+    width: auto;
+    text-align: center;
+    justify-self: center;
+  }
+
+  /* ===== GAME PAGE ===== */
+  /* Keep background gradient – do NOT override */
+  .background {
+    min-height: 100vh;
+    padding: 12px;
+    /* background is inherited from style.css, no need to redeclare */
+  }
+
+  #gameCard {
+    width: 95vw;
+    margin-left: 2.5vw;
+    padding: 16px;
+    background: rgba(18, 32, 53, 0.68);
+    border: 0.12vw solid rgba(122, 190, 255, 0.14);
+  }
+
+  .cover {
+    width: 100%;
+    height: auto;
+    margin-left: 0;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin: 12px 0 8px;
+  }
+
+  .artist {
+    font-size: 14px;
+  }
+
+  .info {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .round,
+  .scores {
+    font-size: 12px;
+  }
+
+  /* Controls – stack vertically on mobile */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .control {
+    min-width: auto;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 40px;
+  }
+
+  .feedback {
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  /* ===== FLIP CARDS (SLIDER) ===== */
+  .slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding: 16px 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cardflip {
+    flex: 0 0 75vw;
+    height: 45vh;
+    scroll-snap-align: start;
+  }
+
+  .front,
+  .back {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Touch-friendly flip */
+  @media (hover: none) and (pointer: coarse) {
+    .cardflip .flip {
+      transition: transform 0.4s;
+    }
+    .cardflip:active .flip {
+      transform: rotateY(180deg);
+    }
+  }
+
+  /* ===== LEADERBOARD ===== */
+  .leaderboard-page {
+    padding: 20px 12px;
+  }
+
+  .leaderboard-container {
+    width: 100%;
+  }
+
+  .leaderboard-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .leaderboard-rank {
+    min-width: 32px;
+    font-size: 14px;
+  }
+
+  .leaderboard-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .leaderboard-player {
+    gap: 4px;
+  }
+
+  .leaderboard-player span:first-child {
+    font-size: 14px;
+  }
+
+  .leaderboard-player span:last-child {
+    font-size: 11px;
+  }
+
+  .leaderboard-score {
+    font-size: 14px;
+  }
+
+  /* ===== BUTTONS & TOUCH TARGETS ===== */
+  button,
+  .button,
+  .player-btn,
+  .control,
+  .menu-content a,
+  .burger {
+    cursor: pointer;
+    min-height: 44px;
+  }
+
+  button:active,
+  .control:active {
+    transform: scale(0.97);
+    transition: transform 0.05s;
+  }
+
+  /* ===== INPUTS ===== */
+  input {
+    max-width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 30px;
+  }
+
+  /* ===== MODAL / CARD FIXES ===== */
+  .card {
+    max-width: 95vw;
+    padding: 16px;
+  }
+
+  /* ===== REVIEWS SECTION ===== */
+  #reviews h3 {
+    margin-top: 24px;
+    font-size: 18px;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 16px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== UTILITY ===== */
+  h1 {
+    font-size: 28px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  /* Prevent horizontal overflow */
+  img,
+  iframe,
+  video,
+  .cover,
+  .logo {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Extra small devices (<= 400px) */
+@media screen and (max-width: 400px) {
+  .cardflip {
+    flex: 0 0 85vw;
+    height: 40vh;
+  }
+
+  .lobbyHeading {
+    font-size: 28px;
+  }
+
+  .control {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .user-info h2 {
+    font-size: 16px;
+  }
+  
+  .logo-wrapper {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
+
+/* Landscape orientation fixes */
+@media screen and (max-width: 800px) and (orientation: landscape) {
+  .cardflip {
+    height: 70vh;
+  }
+
+  .slider {
+    padding: 12px;
+  }
+
+  .lobby {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .logo-wrapper {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* Make flip cards work on touchscreens */
+@media (hover: none) and (pointer: coarse) {
+  .cardflip .flip {
+    transition: transform 0.4s ease;
+  }
+  
+  .cardflip.tapped .flip {
+    transform: rotateY(180deg);
+  }
+}
