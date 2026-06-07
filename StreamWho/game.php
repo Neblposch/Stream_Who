@@ -154,294 +154,383 @@ if ($roomCode === '') {
             <div id="feedback" class="feedback"></div>
         </div>
 
-        <script>
-            let gameState = {
-                players: <?= json_encode($roomData['players']) ?>,
-                scores: <?= json_encode($roomData['game']['scores'] ?? []) ?>,
-                status: '<?= $roomData['game']['status'] ?? 'idle' ?>',
-                track: <?= json_encode($roomData['game']['track'] ?? null) ?>,
-                my_guess: null,
-                is_host: <?= (($spotifyUser['id'] ?? '') === ($roomData['host_id'] ?? '')) ? 'true' : 'false' ?>,
-                round: <?= $roomData['game']['round_number'] ?? 0 ?>
-            };
-            const roomCode = <?= json_encode($roomCode) ?>;
-            
-            let currentAudio = null;
-            let currentTrackId = null;
-            let previewFailed = false;
-            let hasScrolledToGame = false;
+       <script>
+    let gameState = {
+        players: <?= json_encode($roomData['players']) ?>,
+        scores: <?= json_encode($roomData['game']['scores'] ?? []) ?>,
+        status: '<?= $roomData['game']['status'] ?? 'idle' ?>',
+        track: <?= json_encode($roomData['game']['track'] ?? null) ?>,
+        my_guess: null,
+        is_host: <?= (($spotifyUser['id'] ?? '') === ($roomData['host_id'] ?? '')) ? 'true' : 'false' ?>,
+        round: <?= $roomData['game']['round_number'] ?? 0 ?>
+    };
+    const roomCode = <?= json_encode($roomCode) ?>;
+    
+    let currentAudio = null;
+    let currentTrackId = null;
+    let previewFailed = false;
+    let hasScrolledToGame = false;
+    let stateUpdateInterval = null;
 
-            function stopPreview() {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    currentAudio = null;
-                }
-            }
+    function stopPreview() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
+    }
 
-            function playPreview(track, force = false) {
-                if (!track || !track.preview_url) {
-                    stopPreview();
-                    return;
-                }
+    function playPreview(track, force = false) {
+        // Only play preview if game is active
+        if (gameState.status !== 'active') {
+            stopPreview();
+            return;
+        }
+        
+        if (!track || !track.preview_url) {
+            stopPreview();
+            return;
+        }
 
-                if (previewFailed && !force) {
-                    return;
-                }
+        if (previewFailed && !force) {
+            return;
+        }
 
-                if (currentTrackId === track.id && currentAudio && !currentAudio.paused) {
-                    return;
-                }
+        if (currentTrackId === track.id && currentAudio && !currentAudio.paused) {
+            return;
+        }
 
-                stopPreview();
-                currentTrackId = track.id;
-                currentAudio = new Audio(track.preview_url);
-                currentAudio.volume = 0.4;
-                currentAudio.play().catch(() => {
-                    previewFailed = true;
-                    stopPreview();
-                });
-            }
+        stopPreview();
+        currentTrackId = track.id;
+        currentAudio = new Audio(track.preview_url);
+        currentAudio.volume = 0.4;
+        currentAudio.play().catch(() => {
+            previewFailed = true;
+            stopPreview();
+        });
+    }
 
-            async function fetchState() {
-                try {
-                    const response = await fetch('game_logic.php?action=state');
-                    const data = await response.json();
-                    if (data && data.success !== false) {
-                        gameState = { ...gameState, ...data };
-                    }
-                    render();
-                } catch (error) {
-                    console.error('Unable to refresh game state', error);
-                }
-            }
-
-            async function startGame() {
-                if (!gameState.is_host) {
-                    return;
-                }
-
-                const response = await fetch('game_logic.php?action=start', { method: 'POST' });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
-                }
-                render();
-            }
-
-            async function nextRound() {
-                if (!gameState.is_host) {
-                    return;
-                }
-
-                const response = await fetch('game_logic.php?action=next_round', { method: 'POST' });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
-                }
-                render();
-            }
-
-            async function endGame() {
-                if (!gameState.is_host || gameState.status === 'ended') {
-                    return;
-                }
-
-                const response = await fetch('game_logic.php?action=end_game', { method: 'POST' });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
-                    stopPreview();
-                    window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
-                    return;
-                }
-                render();
-            }
-
-            async function submitGuess(playerId) {
-                if (gameState.status !== 'active' || gameState.my_guess) {
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('guess', playerId);
-                const response = await fetch('game_logic.php?action=guess', { method: 'POST', body: formData });
-                const data = await response.json();
-                if (data && data.success !== false) {
-                    gameState = { ...gameState, ...data };
-                    showFeedback(data.correct);
-                }
-                render();
-            }
-
-            function scrollToGameCard() {
-                const gameCard = document.getElementById('gameCard');
-                if (gameCard) {
-                    gameCard.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start',
-                        inline: 'nearest'
-                    });
-                }
-            }
-
-            function updateRoomDisplay() {
-                const roomInfoDiv = document.getElementById('roomInfo');
-                const playerListContainer = document.getElementById('playerListContainer');
-                const roomCodeLarge = document.getElementById('roomCodeLarge');
-                const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    async function fetchState() {
+        try {
+            const response = await fetch('game_logic.php?action=state&room=' + encodeURIComponent(roomCode));
+            const data = await response.json();
+            if (data && data.success !== false) {
+                const previousStatus = gameState.status;
+                gameState = { ...gameState, ...data };
                 
-                if (gameState.status === 'active' || gameState.status === 'revealed') {
-                    if (playerListContainer) {
-                        playerListContainer.style.display = 'none';
-                    }
-                    if (roomCodeLarge) {
-                        roomCodeLarge.style.display = 'inline-block';
-                    }
-                    if (roomCodeDisplay) {
-                        roomCodeDisplay.style.display = 'none';
-                    }
-                    roomInfoDiv.classList.add('hide-players');
-                    
-                    if (!hasScrolledToGame) {
-                        setTimeout(() => {
-                            scrollToGameCard();
-                            hasScrolledToGame = true;
-                        }, 200);
-                    }
-                } else {
-                    if (playerListContainer) {
-                        playerListContainer.style.display = 'block';
-                    }
-                    if (roomCodeLarge) {
-                        roomCodeLarge.style.display = 'none';
-                    }
-                    if (roomCodeDisplay) {
-                        roomCodeDisplay.style.display = 'inline';
-                    }
-                    roomInfoDiv.classList.remove('hide-players');
-                    hasScrolledToGame = false;
-                }
-            }
-
-            function render() {
-                const isGameEnded = gameState.status === 'ended';
-                const cover = gameState.track?.cover || '';
-                const coverImg = document.getElementById('trackCover');
-                const playTrackBtn = document.getElementById('playTrackBtn');
-                const gameCard = document.getElementById('gameCard');
-                
-                if (isGameEnded) {
-                    stopPreview();
-                    document.body.style.backgroundImage = 'none';
-                    gameCard.style.display = 'none';
-                    window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
-                    return;
-                }
-
-                gameCard.style.display = 'block';
-
-                if (cover) {
-                    coverImg.src = cover;
-                    coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
-                    document.body.style.backgroundImage = `url(${cover})`;
-                } else {
-                    coverImg.src = 'test.jpg';
-                    coverImg.alt = 'Track Cover';
-                    document.body.style.backgroundImage = 'none';
-                }
-                
-                document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
-                document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
-
-                const hasPreview = Boolean(gameState.track?.preview_url);
-                playTrackBtn.disabled = !hasPreview;
-                playTrackBtn.textContent = hasPreview ? 'Play selected song' : 'Preview unavailable';
-
-                if (gameState.track && currentTrackId !== gameState.track.id) {
-                    previewFailed = false;
-                }
-
-                if (gameState.status === 'active' && gameState.track && !previewFailed) {
-                    playPreview(gameState.track);
-                } else {
+                // Stop preview if game is no longer active
+                if (gameState.status !== 'active') {
                     stopPreview();
                 }
-
-                const playersDiv = document.getElementById('players');
-                playersDiv.innerHTML = '';
-                (gameState.players || []).forEach(player => {
-                    const btn = document.createElement('button');
-                    btn.className = 'button player-btn';
-                    btn.textContent = player.name;
-                    btn.onclick = () => submitGuess(player.id);
-                    playersDiv.appendChild(btn);
-                });
-
-                document.getElementById('round').textContent = `Round: ${gameState.round ?? 0}`;
-                document.getElementById('timer').textContent = `Time left: ${gameState.time_left ?? 0}s`;
-
-                const scoresDiv = document.getElementById('scores');
-                scoresDiv.innerHTML = 'Scores: ';
-                Object.entries(gameState.scores || {}).forEach(([id, score]) => {
-                    const player = (gameState.players || []).find(p => p.id === id);
-                    if (player) {
-                        scoresDiv.innerHTML += `${player.name}: ${score} `;
-                    }
-                });
-
-                const canGuess = gameState.status === 'active' && !gameState.my_guess;
-                document.querySelectorAll('.player-btn').forEach(btn => {
-                    btn.disabled = !canGuess;
-                });
-
-                const startBtn = document.getElementById('startBtn');
-                const nextBtn = document.getElementById('nextBtn');
-                const endGameBtn = document.getElementById('endGameBtn');
-                const isHost = Boolean(gameState.is_host);
-
-                startBtn.style.display = isHost && gameState.status === 'idle' ? 'inline-block' : 'none';
-                startBtn.disabled = !isHost || gameState.status !== 'idle';
-
-                nextBtn.style.display = isHost && gameState.status === 'revealed' ? 'inline-block' : 'none';
-                nextBtn.disabled = !isHost || gameState.status !== 'revealed';
-
-                endGameBtn.style.display = isHost && ['active', 'revealed'].includes(gameState.status) ? 'inline-block' : 'none';
-                endGameBtn.disabled = !isHost || !['active', 'revealed'].includes(gameState.status);
-
-                if (gameState.status === 'active') {
-                    document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted.' : 'Guess the player who listened to this track the most.';
-                    document.getElementById('feedback').style.color = '';
-                } else if (gameState.status === 'revealed') {
-                    const correctPlayer = (gameState.players || []).find(player => player.id === gameState.correct_player_id);
-                    document.getElementById('feedback').textContent = correctPlayer ? `${correctPlayer.name} was the source player.` : 'Round complete.';
-                    document.getElementById('feedback').style.color = 'white';
-                } else {
-                    document.getElementById('feedback').textContent = 'Waiting for the host to start the next round.';
-                    document.getElementById('feedback').style.color = '';
-                }
-
-                updateRoomDisplay();
             }
-
-            function showFeedback(correct) {
-                const feedback = document.getElementById('feedback');
-                feedback.textContent = correct ? 'Correct!' : 'Wrong!';
-                feedback.style.color = correct ? '#7ABEFF' : '#FF6B6B';
-            }
-
-            document.getElementById('startBtn').onclick = startGame;
-            document.getElementById('nextBtn').onclick = nextRound;
-            document.getElementById('endGameBtn').onclick = endGame;
-            document.getElementById('playTrackBtn').onclick = () => {
-                previewFailed = false;
-                playPreview(gameState.track, true);
-            };
-
             render();
-            fetchState();
-            setInterval(fetchState, 3000);
-        </script>
+        } catch (error) {
+            console.error('Unable to refresh game state', error);
+        }
+    }
+
+    async function startGame() {
+        if (!gameState.is_host) {
+            console.log('Not host, cannot start game');
+            return;
+        }
+        
+        if (gameState.status !== 'idle' && gameState.status !== 'ended') {
+            console.log('Game already started or ended');
+            return;
+        }
+
+        try {
+            const response = await fetch('game_logic.php?action=start&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+            const data = await response.json();
+            if (data && data.success !== false) {
+                gameState = { ...gameState, ...data };
+                render();
+                // Start the first round after a short delay
+                setTimeout(() => {
+                    nextRound();
+                }, 500);
+            } else {
+                console.error('Failed to start game:', data.message);
+                document.getElementById('feedback').textContent = 'Failed to start game: ' + (data.message || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Error starting game:', error);
+            document.getElementById('feedback').textContent = 'Error starting game. Please try again.';
+        }
+    }
+
+    async function nextRound() {
+        if (!gameState.is_host) {
+            return;
+        }
+
+        if (gameState.status === 'ended') {
+            return;
+        }
+
+        try {
+            const response = await fetch('game_logic.php?action=next_round&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+            const data = await response.json();
+            if (data && data.success !== false) {
+                gameState = { ...gameState, ...data };
+                // Reset preview flag for new track
+                previewFailed = false;
+                // Clear any existing feedback message
+                if (gameState.status === 'active') {
+                    document.getElementById('feedback').style.color = '';
+                }
+            } else {
+                console.error('Failed to start next round:', data.message);
+                document.getElementById('feedback').textContent = 'Failed to start round: ' + (data.message || 'Unknown error');
+            }
+            render();
+        } catch (error) {
+            console.error('Error starting next round:', error);
+            document.getElementById('feedback').textContent = 'Error starting next round. Please try again.';
+        }
+    }
+
+    async function endGame() {
+        if (!gameState.is_host || gameState.status === 'ended') {
+            return;
+        }
+
+        try {
+            const response = await fetch('game_logic.php?action=end_game&room=' + encodeURIComponent(roomCode), { method: 'POST' });
+            const data = await response.json();
+            if (data && data.success !== false) {
+                gameState = { ...gameState, ...data };
+                stopPreview();
+                window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
+                return;
+            }
+            render();
+        } catch (error) {
+            console.error('Error ending game:', error);
+        }
+    }
+
+    async function submitGuess(playerId) {
+        if (gameState.status !== 'active' || gameState.my_guess) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('guess', playerId);
+        try {
+            const response = await fetch('game_logic.php?action=guess&room=' + encodeURIComponent(roomCode), { method: 'POST', body: formData });
+            const data = await response.json();
+            if (data && data.success !== false) {
+                gameState = { ...gameState, ...data };
+                showFeedback(data.correct);
+            }
+            render();
+        } catch (error) {
+            console.error('Error submitting guess:', error);
+        }
+    }
+
+    function scrollToGameCard() {
+        const gameCard = document.getElementById('gameCard');
+        if (gameCard) {
+            gameCard.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
+        }
+    }
+
+    function updateRoomDisplay() {
+        const roomInfoDiv = document.getElementById('roomInfo');
+        const playerListContainer = document.getElementById('playerListContainer');
+        const roomCodeLarge = document.getElementById('roomCodeLarge');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        
+        if (gameState.status === 'active' || gameState.status === 'revealed') {
+            if (playerListContainer) {
+                playerListContainer.style.display = 'none';
+            }
+            if (roomCodeLarge) {
+                roomCodeLarge.style.display = 'inline-block';
+            }
+            if (roomCodeDisplay) {
+                roomCodeDisplay.style.display = 'none';
+            }
+            roomInfoDiv.classList.add('hide-players');
+            
+            if (!hasScrolledToGame && (gameState.status === 'active' || gameState.status === 'revealed')) {
+                setTimeout(() => {
+                    scrollToGameCard();
+                    hasScrolledToGame = true;
+                }, 200);
+            }
+        } else {
+            if (playerListContainer) {
+                playerListContainer.style.display = 'block';
+            }
+            if (roomCodeLarge) {
+                roomCodeLarge.style.display = 'none';
+            }
+            if (roomCodeDisplay) {
+                roomCodeDisplay.style.display = 'inline';
+            }
+            roomInfoDiv.classList.remove('hide-players');
+            hasScrolledToGame = false;
+        }
+    }
+
+    function render() {
+        const isGameEnded = gameState.status === 'ended';
+        const cover = gameState.track?.cover || '';
+        const coverImg = document.getElementById('trackCover');
+        const playTrackBtn = document.getElementById('playTrackBtn');
+        const gameCard = document.getElementById('gameCard');
+        
+        if (isGameEnded) {
+            stopPreview();
+            document.body.style.backgroundImage = 'none';
+            gameCard.style.display = 'none';
+            window.location.href = 'leaderboard.php?room=' + encodeURIComponent(roomCode);
+            return;
+        }
+
+        gameCard.style.display = 'block';
+
+        if (cover && gameState.status === 'active') {
+            coverImg.src = cover;
+            coverImg.alt = gameState.track?.title ? `${gameState.track.title} cover` : 'Track Cover';
+            document.body.style.backgroundImage = `url(${cover})`;
+        } else {
+            coverImg.src = 'test.jpg';
+            coverImg.alt = 'Track Cover';
+            document.body.style.backgroundImage = 'none';
+        }
+        
+        document.getElementById('trackTitle').textContent = gameState.track?.title || 'No track loaded';
+        document.getElementById('trackArtist').textContent = gameState.track?.artist || '';
+
+        const hasPreview = Boolean(gameState.track?.preview_url) && gameState.status === 'active';
+        playTrackBtn.disabled = !hasPreview;
+        playTrackBtn.textContent = hasPreview ? 'Play selected song' : (gameState.status === 'active' ? 'Preview unavailable' : 'Wait for game to start');
+
+        if (gameState.status === 'active' && gameState.track && !previewFailed) {
+            playPreview(gameState.track);
+        } else {
+            stopPreview();
+        }
+
+        const playersDiv = document.getElementById('players');
+        playersDiv.innerHTML = '';
+        (gameState.players || []).forEach(player => {
+            const btn = document.createElement('button');
+            btn.className = 'button player-btn';
+            btn.textContent = player.name;
+            btn.onclick = () => submitGuess(player.id);
+            btn.disabled = (gameState.status !== 'active' || gameState.my_guess !== null);
+            playersDiv.appendChild(btn);
+        });
+
+        document.getElementById('round').textContent = `Round: ${gameState.round ?? 0}`;
+        document.getElementById('timer').textContent = `Time left: ${gameState.time_left ?? 0}s`;
+
+        const scoresDiv = document.getElementById('scores');
+        scoresDiv.innerHTML = 'Scores: ';
+        Object.entries(gameState.scores || {}).forEach(([id, score]) => {
+            const player = (gameState.players || []).find(p => p.id === id);
+            if (player) {
+                scoresDiv.innerHTML += `${player.name}: ${score} `;
+            }
+        });
+
+        const startBtn = document.getElementById('startBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const endGameBtn = document.getElementById('endGameBtn');
+        const isHost = Boolean(gameState.is_host);
+
+        // Show start button only when game is idle (not started)
+        startBtn.style.display = isHost && gameState.status === 'idle' ? 'inline-block' : 'none';
+        
+        // Show next button when game is revealed or waiting to start
+        nextBtn.style.display = isHost && (gameState.status === 'revealed' || gameState.status === 'waiting_to_start') ? 'inline-block' : 'none';
+        
+        // Enable next button text
+        if (nextBtn.style.display === 'inline-block') {
+            nextBtn.textContent = gameState.status === 'waiting_to_start' ? 'Start First Round' : 'Next Round';
+        }
+        
+        // Show end game button during active gameplay
+        endGameBtn.style.display = isHost && (gameState.status === 'active' || gameState.status === 'revealed') ? 'inline-block' : 'none';
+
+        if (gameState.status === 'active') {
+            document.getElementById('feedback').textContent = gameState.my_guess ? 'Guess submitted. Waiting for others...' : 'Guess which player listened to this track the most!';
+            if (!gameState.my_guess) {
+                document.getElementById('feedback').style.color = '';
+            }
+        } else if (gameState.status === 'revealed') {
+            const correctPlayer = (gameState.players || []).find(player => player.id === gameState.correct_player_id);
+            document.getElementById('feedback').textContent = correctPlayer ? `Round complete! ${correctPlayer.name} listened to this track the most.` : 'Round complete.';
+            document.getElementById('feedback').style.color = '#7ABEFF';
+        } else if (gameState.status === 'waiting_to_start') {
+            document.getElementById('feedback').textContent = 'Game is ready! Click "Start First Round" to begin.';
+            document.getElementById('feedback').style.color = '#7ABEFF';
+        } else {
+            document.getElementById('feedback').textContent = gameState.is_host ? 'Click "Start Game" to begin!' : 'Waiting for the host to start the game...';
+            document.getElementById('feedback').style.color = '';
+        }
+
+        updateRoomDisplay();
+    }
+
+    function showFeedback(correct) {
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = correct ? '✓ Correct! +1 point' : '✗ Wrong guess!';
+        feedback.style.color = correct ? '#7ABEFF' : '#FF6B6B';
+        setTimeout(() => {
+            if (gameState.status === 'active') {
+                feedback.textContent = 'Guess submitted. Waiting for others...';
+                feedback.style.color = '';
+            }
+        }, 2000);
+    }
+
+    // Set up event listeners
+    const startBtnElement = document.getElementById('startBtn');
+    const nextBtnElement = document.getElementById('nextBtn');
+    const endGameBtnElement = document.getElementById('endGameBtn');
+    const playTrackBtnElement = document.getElementById('playTrackBtn');
+    
+    if (startBtnElement) {
+        startBtnElement.onclick = startGame;
+    }
+    if (nextBtnElement) {
+        nextBtnElement.onclick = nextRound;
+    }
+    if (endGameBtnElement) {
+        endGameBtnElement.onclick = endGame;
+    }
+    if (playTrackBtnElement) {
+        playTrackBtnElement.onclick = () => {
+            previewFailed = false;
+            playPreview(gameState.track, true);
+        };
+    }
+
+    // Initial render and start polling
+    render();
+    fetchState();
+    // Poll every 2 seconds for state updates
+    stateUpdateInterval = setInterval(fetchState, 2000);
+    
+    // Clean up interval on page unload
+    window.addEventListener('beforeunload', () => {
+        if (stateUpdateInterval) {
+            clearInterval(stateUpdateInterval);
+        }
+        stopPreview();
+    });
+</script>
     <?php endif; ?>
 </body>
 </html>

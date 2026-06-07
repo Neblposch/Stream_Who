@@ -145,7 +145,7 @@ function determineCorrectPlayer(string $sourcePlayerId, array $playersWithTracks
 
 function getRoomContext(): ?array
 {
-    $roomCode = $_SESSION['current_room'] ?? null;
+    $roomCode = $_GET['room'] ?? $_SESSION['current_room'] ?? null;
     if (!is_string($roomCode) || $roomCode === '') {
         return null;
     }
@@ -165,13 +165,6 @@ function getRoomContext(): ?array
         'roomCode' => $roomCode,
         'userId' => $userId,
     ];
-}
-
-function saveRoom(array $room): void
-{
-    $rooms = getAllRooms();
-    $rooms[$room['code'] ?? ''] = $room;
-    saveAllRooms($rooms);
 }
 
 function persistRoomState(array $room, string $roomCode): void
@@ -297,7 +290,25 @@ $roomCode = $context['roomCode'];
 $userId = $context['userId'];
 $action = $_REQUEST['action'] ?? 'state';
 
-if ($action === 'start' || $action === 'next_round') {
+if ($action === 'start') {
+    // Start the game - this should only set status to idle and allow next_round to work
+    if ($room['host_id'] !== $userId) {
+        echo json_encode(['success' => false, 'message' => 'Only the host can start the game.']);
+        exit;
+    }
+    
+    $game = $room['game'] ?? defaultGameState();
+    if ($game['status'] === 'idle') {
+        $game['status'] = 'waiting_to_start';
+        $room['game'] = $game;
+        persistRoomState($room, $roomCode);
+    }
+    
+    echo json_encode(buildGameResponse($room, $userId));
+    exit;
+}
+
+if ($action === 'next_round') {
     if ($room['host_id'] !== $userId) {
         echo json_encode(['success' => false, 'message' => 'Only the host can control the round.']);
         exit;
@@ -308,7 +319,9 @@ if ($action === 'start' || $action === 'next_round') {
         exit;
     }
 
-    if (($room['game']['status'] ?? 'idle') !== 'active') {
+    // Only allow starting a new round if current status is idle, waiting_to_start, or revealed
+    $currentStatus = $room['game']['status'] ?? 'idle';
+    if ($currentStatus !== 'active') {
         try {
             $room = startNewRound($room);
             persistRoomState($room, $roomCode);
